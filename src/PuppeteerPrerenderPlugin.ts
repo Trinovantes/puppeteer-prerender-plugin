@@ -138,7 +138,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
 
         const result: RenderResult = {
             originalRoute: route,
-            route: await page.evaluate(() => window.location.pathname),
+            route: await page.evaluate('window.location.pathname') as string,
             html: await page.content(),
         }
 
