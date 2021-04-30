@@ -1,18 +1,29 @@
 {
-    "extends": "@tsconfig/node14/tsconfig.json",
     "compilerOptions": {
         "strict": true,
-        "declaration": true,
+        "sourceMap": true,
 
-        "experimentalDecorators": true,
+        "lib": [
+            "esnext",
+            "dom",
+        ],
+        "target": "esnext",
+        "module": "commonjs",
+        "moduleResolution": "node",
+
         "allowSyntheticDefaultImports": true,
         "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
 
         "noUnusedLocals": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
 
         "outDir": "dist",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./src/*"],
+        },
     },
     "exclude": [
         "node_modules",
