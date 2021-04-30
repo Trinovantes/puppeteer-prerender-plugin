@@ -1,9 +1,12 @@
 {
     "name": "puppeteer-prerender-plugin",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Webpack 5 plugin for prerendering SPAs with puppeteer",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "files": [
+        "dist/*"
+    ],
     "repository": "https://github.com/Trinovantes/puppeteer-prerender-plugin",
     "author": "Trinovantes",
     "license": "MIT",
