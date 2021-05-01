@@ -11,7 +11,7 @@ type WebpackLogger = ReturnType<Compiler['getInfrastructureLogger']>
 // ----------------------------------------------------------------------------
 
 export const PLUGIN_NAME = 'PuppeteerPrerenderPlugin'
-export const PRERENDER_STATUS_KEY = '__PRERENDER__'
+export const PRERENDER_STATUS_KEY = '__PRERENDER_STATUS__'
 
 // ----------------------------------------------------------------------------
 // PuppeteerPrerenderPlugin
@@ -106,8 +106,10 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         }
 
         // Add the event listener before we navigate to the route so that we don't miss the event
-        const eventName = this._options.renderAfterEvent
-        if (eventName) {
+        {
+            // If no event is specified, then this promise will never resolve
+            // However we still want this Promise object in the window scope so that our apps can detect when it's being prerendered
+            const eventName = this._options.renderAfterEvent ?? `Undefined Event for ${PRERENDER_STATUS_KEY}`
             const script = `() => {
                 window['${PRERENDER_STATUS_KEY}'] = new Promise((resolve) => {
                     document.addEventListener('${eventName}', () => {
