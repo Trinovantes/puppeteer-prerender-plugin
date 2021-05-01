@@ -38,6 +38,7 @@ export interface PuppeteerPrerenderPluginOptions {
     renderAfterEvent?: string
     renderAfterTime?: number
     postProcess?: (result: RenderResult) => void
+    puppeteerOptions: Parameters<typeof puppeteer.launch>[0]
 }
 
 export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
@@ -67,7 +68,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         await localServer.isServerReady()
 
         logger.info('PuppeteerPrerenderPluginOption', 'Initializing Puppeteer')
-        const browser = await puppeteer.launch()
+        const browser = await puppeteer.launch(this._options.puppeteerOptions)
 
         const renderResults = await Promise.all(this._options.routes.map((route) => {
             const address = localServer.baseUrl + route
