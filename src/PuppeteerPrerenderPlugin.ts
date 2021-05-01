@@ -38,7 +38,7 @@ export interface PuppeteerPrerenderPluginOptions {
     renderAfterEvent?: string
     renderAfterTime?: number
     postProcess?: (result: RenderResult) => void
-    puppeteerOptions: Parameters<typeof puppeteer.launch>[0]
+    puppeteerOptions?: Parameters<typeof puppeteer.launch>[0]
 }
 
 export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
