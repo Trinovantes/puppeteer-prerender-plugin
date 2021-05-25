@@ -85,7 +85,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return renderResults
     }
 
-    async renderRoute(logger: WebpackLogger, browser: puppeteer.Browser, route: string): Promise<RenderResult> {
+    private async renderRoute(logger: WebpackLogger, browser: puppeteer.Browser, route: string): Promise<RenderResult> {
         logger.info('Rendering', route)
         const page = await browser.newPage()
 
