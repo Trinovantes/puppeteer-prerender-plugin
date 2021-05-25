@@ -1,0 +1,78 @@
+# Puppeteer Prerender Plugin
+
+This is a Webpack 5 plugin for prerendering Single Page Applications (SPA) with Puppeteer. After Webpack emits all of your files, this plugin starts an Express server in your `dist` directory. It then runs Puppeteer on all of your specified routes (e.g. `/about`) and saves the pages' rendered HTML as separate files (e.g. `/dist/about/index.html`).
+
+## Why?
+
+The main benefit of prerendering your pages is for SEO benefits.
+
+In a normal SPA, you would redirect all of your page requests to a single `index.html` and let your frontend framework handle routing. However, this also means that search engines will always see the same `<meta>` tags. By prerendering each route in your SPA, each page will be able to serve their respective `<meta>` tags for search engines.
+
+## Why You Shouldn't Use This
+
+* You are building a SPA that literally has one page
+
+* Hydration errors are difficult to debug
+
+* This will greatly increase your build times if you have a lot of routes to prerender (over 100+). Consider using Server Side Rendering (SSR) instead.
+
+## Options
+
+Option | Type | Example | Notes
+---    | ---     | ---     | ---
+`outputDir` | `string` | `dist` | **Required:** Output directory of your Webpack compilation.
+`routes` | `Array<string>` | `['/', '/pricing']` | **Required:** Array of routes to render.
+`enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | Disabled by default for performance. This option is useful if you wish to only prerender production builds.
+`keepAlive` | `boolean` | `false` | Keep the Express server alive after prerendering completes. You will need to manually terminate the shell command. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
+`injections` | `Array<{key: string, value: unknown}>` | `[{ key: 'isPrerender', value: true }]` | Data to inject into each page with `window[key] = value`. This is useful if you wish to provide data to your app that's only present during prerender.
+`renderAfterEvent` | `string` | `__RENDERED__` | Event name Puppeteer should wait for before saving page contents. You will need to manually dispatch the event in your app via `document.dispatchEvent(new Event('__RENDERED__'))`.
+`renderAfterTime` | `number` | `5000` | Time in ms for Puppeteer to wait before saving page contents.
+`postProcess` | `Function` | See Example Usage | Function to post-process the saved page contents and route.
+`puppeteerOptions` | `Object` | See Example Usage | Options to pass to `puppeteer.launch()`. See [Puppeteer documentation](https://github.com/puppeteer/puppeteer/blob/v9.1.1/docs/api.md#puppeteerlaunchoptions) for more information.
+
+
+## Example Usage
+
+### webpack.config.ts
+
+```ts
+plugins: [
+    new PuppeteerPrerenderPlugin({
+        enabled: process.env.NODE_ENV !== 'development',
+        renderAfterEvent: '__RENDERED__',
+        outputDir: 'dist',
+        postProcess: (result) => {
+            result.html = result.html
+                .replace(/<script (.*?)>/g, '<script $1 defer>')
+                .replace('id="app"', 'id="app" data-server-rendered="true"')
+                .replace('<title', '<title data-vm-ssr="true"')
+                .replace('<meta', '<meta data-vm-ssr="true"')
+        },
+        routes: [
+            '/',
+            '/about',
+            '/pricing',
+        ],
+        puppeteerOptions: {
+            // Needed to run inside Docker
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+            ],
+        },
+    }),
+],
+```
+
+### main.ts
+
+```ts
+import { createApp } from 'vue'
+import App from 'App.vue'
+const app = createApp(App)
+app.mount('#app')
+
+// Tell Puppeteer the page is ready to be saved
+document.dispatchEvent(new Event('__RENDERED__'))
+```
