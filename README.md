@@ -10,9 +10,9 @@ In a normal SPA, you would redirect all of your page requests to a single `index
 
 ## Why You Shouldn't Use This
 
-* You are building a SPA that literally has one page
+* You are building a SPA that literally has one page.
 
-* Hydration errors are difficult to debug
+* Hydration errors are difficult to debug.
 
 * This will greatly increase your build times if you have a lot of routes to prerender (over 100+). Consider using Server Side Rendering (SSR) instead.
 
@@ -45,8 +45,6 @@ plugins: [
             result.html = result.html
                 .replace(/<script (.*?)>/g, '<script $1 defer>')
                 .replace('id="app"', 'id="app" data-server-rendered="true"')
-                .replace('<title', '<title data-vm-ssr="true"')
-                .replace('<meta', '<meta data-vm-ssr="true"')
         },
         routes: [
             '/',
