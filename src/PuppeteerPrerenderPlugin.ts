@@ -44,8 +44,8 @@ export interface PuppeteerPrerenderPluginOptions {
 export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     private _options: PuppeteerPrerenderPluginOptions
 
-    constructor(option: PuppeteerPrerenderPluginOptions) {
-        this._options = option
+    constructor(options: PuppeteerPrerenderPluginOptions) {
+        this._options = options
     }
 
     apply(compiler: Compiler): void {
