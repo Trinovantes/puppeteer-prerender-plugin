@@ -103,7 +103,7 @@ export default {
                 const dom = new JSDOM(result.html)
                 const body = dom.window.document.querySelector('body')
                 if (body) {
-                    // Remove body HTML since Vue 3 cannot hydrate non-SSR DOM
+                    // Remove body HTML since Vue 3 cannot hydrate non-SSR markup
                     body.innerHTML = '<div id="app"></div>'
                 }
 
