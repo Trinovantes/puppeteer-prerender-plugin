@@ -3,6 +3,7 @@ import puppeteer from 'puppeteer'
 import path from 'path'
 import { mkdir, writeFile } from 'fs/promises'
 import { LocalServer } from './LocalServer'
+import { batchRequests } from './utils'
 
 type WebpackLogger = ReturnType<Compiler['getInfrastructureLogger']>
 
@@ -34,6 +35,7 @@ export interface PuppeteerPrerenderPluginOptions {
 
     enabled?: boolean
     keepAlive?: boolean
+    maxParallel?: number
     injections?: Array<PageInjection>
     renderAfterEvent?: string
     renderAfterTime?: number
@@ -57,32 +59,36 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
                 return
             }
 
-            const renderResults = await this.renderRoutes(logger)
-            await this.saveResults(renderResults)
+            await this.renderRoutes(logger)
         })
     }
 
-    private async renderRoutes(logger: WebpackLogger) {
+    private async renderRoutes(logger: WebpackLogger): Promise<void> {
         logger.info('PuppeteerPrerenderPluginOption', 'Initializing LocalServer')
         const localServer = new LocalServer(this._options.outputDir)
         await localServer.isServerReady()
 
         logger.info('PuppeteerPrerenderPluginOption', 'Initializing Puppeteer')
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
+        const totalRoutes = this._options.routes.length
+        const maxParallel = this._options.maxParallel ?? totalRoutes
 
-        const renderResults = await Promise.all(this._options.routes.map((route) => {
-            const address = localServer.baseUrl + route
-            return this.renderRoute(logger, browser, address)
-        }))
+        await batchRequests(totalRoutes, maxParallel, async(routeIdx) => {
+            const address = localServer.baseUrl + this._options.routes[routeIdx]
+            const renderResult = await this.renderRoute(logger, browser, address)
+            this._options.postProcess?.(renderResult)
 
-        logger.info(`Rendered ${renderResults.length} route(s)`)
+            const outputPath = path.join(this._options.outputDir, renderResult.route, 'index.html')
+            await mkdir(path.dirname(outputPath), { recursive: true })
+            await writeFile(outputPath, renderResult.html.trim())
+        })
+
+        logger.info(`Rendered ${totalRoutes} route(s)`)
 
         await browser.close()
         if (!this._options.keepAlive) {
             localServer.destroy()
         }
-
-        return renderResults
     }
 
     private async renderRoute(logger: WebpackLogger, browser: puppeteer.Browser, route: string): Promise<RenderResult> {
@@ -147,21 +153,5 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
 
         await page.close()
         return result
-    }
-
-    private async saveResults(renderResults: Array<RenderResult>) {
-        const promises: Array<Promise<void>> = []
-
-        for (const renderResult of renderResults) {
-            this._options.postProcess?.(renderResult)
-
-            const outputPath = path.join(this._options.outputDir, renderResult.route, 'index.html')
-            promises.push((async() => {
-                await mkdir(path.dirname(outputPath), { recursive: true })
-                await writeFile(outputPath, renderResult.html.trim())
-            })())
-        }
-
-        await Promise.all(promises)
     }
 }
