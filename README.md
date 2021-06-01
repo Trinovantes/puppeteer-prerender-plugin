@@ -21,7 +21,7 @@ In a normal SPA, you would redirect all of your page requests to a single `index
 Option | Type | Example | Notes
 ---    | ---     | ---     | ---
 `outputDir` | `string` | `dist` | **Required:** Output directory of your Webpack compilation.
-`routes` | `Array<string>` | `['/', '/pricing']` | **Required:** Array of routes to render.
+`routes` | `Array<string>` | `['/pricing', '/']` | **Required:** Array of routes to render.
 `enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | Disabled by default for performance. This option is useful if you wish to only prerender production builds.
 `keepAlive` | `boolean` | `false` | Keep the Express server alive after prerendering completes. You will need to manually terminate the shell command. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
 `maxParallel` | `number` | `10` | Maximum number of parallel Puppeteer instances. This option is useful for keeping CPU/memory usage down when you have a lot of routes.
@@ -31,37 +31,49 @@ Option | Type | Example | Notes
 `postProcess` | `Function` | See Example Usage | Function to post-process the saved page contents and route.
 `puppeteerOptions` | `Object` | See Example Usage | Options to pass to `puppeteer.launch()`. See [Puppeteer documentation](https://github.com/puppeteer/puppeteer/blob/v9.1.1/docs/api.md#puppeteerlaunchoptions) for more information.
 
+> **Important:** Your `/` route must be defined last. Otherwise, routes rendered after `/` will use `dist/index.html` with artifacts specific to your homepage instead of a blank SPA `index.html`.
 
 ## Example Usage
 
 ### webpack.config.ts
 
 ```ts
-plugins: [
-    new PuppeteerPrerenderPlugin({
-        enabled: process.env.NODE_ENV !== 'development',
-        renderAfterEvent: '__RENDERED__',
-        outputDir: 'dist',
-        postProcess: (result) => {
-            result.html = result.html
-                .replace(/<script (.*?)>/g, '<script $1 defer>')
-                .replace('id="app"', 'id="app" data-server-rendered="true"')
-        },
-        routes: [
-            '/',
-            '/about',
-            '/pricing',
-        ],
-        puppeteerOptions: {
-            // Needed to run inside Docker
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
+import { PuppeteerPrerenderPlugin } from 'puppeteer-prerender-plugin'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+
+export default {
+    target: 'web',
+    entry: 'main.ts',
+
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: 'index.html', // Generates dist/index.html first
+        }),
+        new PuppeteerPrerenderPlugin({
+            enabled: process.env.NODE_ENV !== 'development',
+            renderAfterEvent: '__RENDERED__',
+            outputDir: 'dist',
+            postProcess: (result) => {
+                result.html = result.html
+                    .replace(/<script (.*?)>/g, '<script $1 defer>')
+                    .replace('id="app"', 'id="app" data-server-rendered="true"')
+            },
+            routes: [
+                '/pricing', // Renders to dist/pricing/index.html
+                '/about',   // Renders to dist/about/index.html
+                '/',        // Renders to dist/index.html
             ],
-        },
-    }),
-],
+            puppeteerOptions: {
+                // Needed to run inside Docker
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                ],
+            },
+        }),
+    ],
+}
 ```
 
 ### main.ts
