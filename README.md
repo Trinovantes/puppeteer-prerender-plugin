@@ -33,7 +33,7 @@ Option | Type | Example | Notes
 
 > **Important:** Your `/` route must be defined last. Otherwise, routes rendered after `/` will use `dist/index.html` with artifacts specific to your homepage instead of a blank SPA `index.html`.
 
-## Example Usage
+## Example Usage (Vue 2)
 
 ### webpack.config.ts
 
@@ -79,11 +79,37 @@ export default {
 ### main.ts
 
 ```ts
-import { createApp } from 'vue'
+import Vue from 'vue'
 import App from 'App.vue'
-const app = createApp(App)
+
+const app = new Vue(App)
 app.mount('#app')
 
 // Tell Puppeteer the page is ready to be saved
 document.dispatchEvent(new Event('__RENDERED__'))
+```
+
+## Vue 3 Usage
+
+Vue 3 hydration assumes the markup has been rendered with `@vue/server-renderer::renderToString` function instead of the output markup of a normal SPA. This is due to the fact that `renderToString` outputs additional comment nodes. As a result, trying to hydrate non SSR markup will result in hydration errors.
+
+If you wish to prerender Vue 3 apps, you will need to set your `postProcess` callback to empty the `<body>` tag. Otherwise, you will see a "white flash" due to Vue removing the prerendered markup with its client-rendered markup.
+
+```ts
+export default {
+    plugins: [
+        new PuppeteerPrerenderPlugin({
+            postProcess: (result) => {
+                const dom = new JSDOM(result.html)
+                const body = dom.window.document.querySelector('body')
+                if (body) {
+                    // Remove body HTML since Vue 3 cannot hydrate non-SSR DOM
+                    body.innerHTML = '<div id="app"></div>'
+                }
+
+                result.html = dom.serialize()
+            },
+        }),
+    ],
+}
 ```
