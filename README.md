@@ -93,7 +93,7 @@ document.dispatchEvent(new Event('__RENDERED__'))
 
 Vue 3 hydration assumes the markup has been rendered with `@vue/server-renderer::renderToString` function instead of the output markup of a normal SPA. This is due to the fact that `renderToString` outputs additional comment nodes. As a result, trying to hydrate non SSR markup will result in hydration errors.
 
-If you wish to prerender Vue 3 apps, you will need to set your `postProcess` callback to empty the `<body>` tag. Otherwise, you will see a "white flash" due to Vue removing the prerendered markup with its client-rendered markup.
+If you wish to prerender Vue 3 apps, you will need to set your `postProcess` callback to empty the `<div id="app">` tag. Otherwise, you will see a "white flash" due to Vue removing the prerendered markup with its client-rendered markup.
 
 ```ts
 export default {
@@ -101,10 +101,10 @@ export default {
         new PuppeteerPrerenderPlugin({
             postProcess: (result) => {
                 const dom = new JSDOM(result.html)
-                const body = dom.window.document.querySelector('body')
-                if (body) {
-                    // Remove body HTML since Vue 3 cannot hydrate non-SSR markup
-                    body.innerHTML = '<div id="app"></div>'
+                const app = dom.window.document.querySelector('div#app')
+                if (app) {
+                    // Remove app HTML since Vue 3 cannot hydrate non-SSR markup
+                    app.innerHTML = ''
                 }
 
                 result.html = dom.serialize()
