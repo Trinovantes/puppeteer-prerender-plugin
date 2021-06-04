@@ -17,12 +17,10 @@
         "noUnusedLocals": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
 
         "outDir": "dist",
         "baseUrl": ".",
-        "paths": {
-            "@/*": ["./src/*"],
-        },
     },
     "exclude": [
         "node_modules",
