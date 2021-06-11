@@ -1,10 +1,10 @@
-export async function batchRequests<T>(totalRequests: number, maxParallel: number, makeRequest: (idx: number) => Promise<T>): Promise<Array<T>> {
+export async function batchRequests<T>(totalRequests: number, maxConcurrent: number, makeRequest: (idx: number) => Promise<T>): Promise<Array<T>> {
     let i = 0
     let results: Array<T> = []
 
     while (i < totalRequests) {
         const start = i
-        const end = Math.min(totalRequests, i + maxParallel)
+        const end = Math.min(totalRequests, i + maxConcurrent)
         const promises = []
 
         for (let requestIdx = start; requestIdx < end; requestIdx++, i++) {

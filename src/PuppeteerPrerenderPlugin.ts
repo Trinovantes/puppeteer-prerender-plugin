@@ -35,7 +35,7 @@ export interface PuppeteerPrerenderPluginOptions {
 
     enabled?: boolean
     keepAlive?: boolean
-    maxParallel?: number
+    maxConcurrent?: number
     injections?: Array<PageInjection>
     renderAfterEvent?: string
     renderAfterTime?: number
@@ -71,9 +71,9 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         logger.info('PuppeteerPrerenderPluginOption', 'Initializing Puppeteer')
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
         const totalRoutes = this._options.routes.length
-        const maxParallel = this._options.maxParallel ?? totalRoutes
+        const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
 
-        await batchRequests(totalRoutes, maxParallel, async(routeIdx) => {
+        await batchRequests(totalRoutes, maxConcurrent, async(routeIdx) => {
             const address = localServer.baseUrl + this._options.routes[routeIdx]
             const renderResult = await this.renderRoute(logger, browser, address)
             this._options.postProcess?.(renderResult)
