@@ -21,7 +21,7 @@ export interface SsgOptions {
 
     createSsrContext?: (req: express.Request, res: express.Response) => SSRContext
     createApp: (ssrContext: SSRContext) => Promise<SsgApp>
-    onPostRender?: (app: App, ssrContext: SSRContext) => void
+    onPostRender?: (app: App, ssrContext: SSRContext) => Promise<void>
 }
 
 export class VueSsgServer extends PrerenderServer {
@@ -139,7 +139,7 @@ interface RenderContext {
 
 async function render(renderContext: RenderContext): Promise<string> {
     const appHtml = await renderToString(renderContext.app, renderContext.ssrContext)
-    renderContext.ssgOptions.onPostRender?.(renderContext.app, renderContext.ssrContext)
+    await renderContext.ssgOptions.onPostRender?.(renderContext.app, renderContext.ssrContext)
 
     const mainjs = renderContext.manifest[renderContext.ssgOptions.clientEntryJs]
 
