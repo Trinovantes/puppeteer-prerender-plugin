@@ -2,8 +2,10 @@ import { Compiler, WebpackPluginInstance } from 'webpack'
 import puppeteer from 'puppeteer'
 import path from 'path'
 import { mkdir, writeFile } from 'fs/promises'
-import { LocalServer } from './LocalServer'
+import { SpaServer } from './SpaServer'
 import { batchRequests } from './utils'
+import { isValidOptions, PuppeteerPrerenderPluginOptions, RenderResult } from './PuppeteerPrerenderPluginOptions'
+import assert from 'assert'
 
 type WebpackLogger = ReturnType<Compiler['getInfrastructureLogger']>
 
@@ -18,35 +20,11 @@ export const PRERENDER_STATUS_KEY = '__PRERENDER_STATUS__'
 // PuppeteerPrerenderPlugin
 // ----------------------------------------------------------------------------
 
-export interface PageInjection {
-    key: string
-    value: unknown
-}
-
-export interface RenderResult {
-    originalRoute: string
-    route: string
-    html: string
-}
-
-export interface PuppeteerPrerenderPluginOptions {
-    outputDir: string
-    routes: Array<string>
-
-    enabled?: boolean
-    keepAlive?: boolean
-    maxConcurrent?: number
-    injections?: Array<PageInjection>
-    renderAfterEvent?: string
-    renderAfterTime?: number
-    postProcess?: (result: RenderResult) => void
-    puppeteerOptions?: Parameters<typeof puppeteer.launch>[0]
-}
-
 export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     private _options: PuppeteerPrerenderPluginOptions
 
     constructor(options: PuppeteerPrerenderPluginOptions) {
+        assert(isValidOptions(options))
         this._options = options
     }
 
@@ -64,30 +42,32 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     }
 
     private async renderRoutes(logger: WebpackLogger): Promise<void> {
-        logger.info('PuppeteerPrerenderPluginOption', 'Initializing LocalServer')
-        const localServer = new LocalServer(this._options.outputDir)
-        await localServer.isServerReady()
-
-        logger.info('PuppeteerPrerenderPluginOption', 'Initializing Puppeteer')
-        const browser = await puppeteer.launch(this._options.puppeteerOptions)
+        const outputDir = this._options.outputDir ?? this._options.entryDir
         const totalRoutes = this._options.routes.length
         const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
 
+        logger.info('PuppeteerPrerenderPluginOption', 'Initializing SpaServer')
+        const server = new SpaServer(this._options.entryDir, this._options.entryFile)
+        await server.isServerReady()
+
+        logger.info('PuppeteerPrerenderPluginOption', 'Initializing Puppeteer')
+        const browser = await puppeteer.launch(this._options.puppeteerOptions)
+
         await batchRequests(totalRoutes, maxConcurrent, async(routeIdx) => {
-            const address = localServer.baseUrl + this._options.routes[routeIdx]
+            const address = server.baseUrl + this._options.routes[routeIdx]
             const renderResult = await this.renderRoute(logger, browser, address)
             this._options.postProcess?.(renderResult)
 
-            const outputPath = path.join(this._options.outputDir, renderResult.route, 'index.html')
+            const outputPath = path.join(outputDir, renderResult.route, 'index.html')
             await mkdir(path.dirname(outputPath), { recursive: true })
             await writeFile(outputPath, renderResult.html.trim())
         })
 
         logger.info(`Rendered ${totalRoutes} route(s)`)
-
         await browser.close()
+
         if (!this._options.keepAlive) {
-            localServer.destroy()
+            server.destroy()
         }
     }
 

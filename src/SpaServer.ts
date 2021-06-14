@@ -4,19 +4,24 @@ import path from 'path'
 import fs from 'fs'
 
 // ----------------------------------------------------------------------------
-// LocalServer
+// SpaServer
 // ----------------------------------------------------------------------------
 
-export class LocalServer {
+export class SpaServer {
     private _app: express.Express
     private _server: http.Server
     private _isReady: Promise<void>
 
-    constructor(staticDir: string) {
+    constructor(staticDir: string, entryFile?: string) {
         this._app = express()
 
         if (!fs.existsSync(staticDir)) {
             throw new Error(`staticDir:"${staticDir}" does not exist`)
+        }
+
+        const indexFile = path.join(staticDir, entryFile ?? 'index.html')
+        if (!fs.existsSync(indexFile)) {
+            throw new Error(`indexFile:"${indexFile}" does not exist`)
         }
 
         // Handle static files first (i.e. js, css, images)
@@ -26,7 +31,7 @@ export class LocalServer {
 
         // Redirect all requests to SPA in index.html
         this._app.get('*', (req, res) => {
-            res.sendFile(path.join(staticDir, 'index.html'))
+            res.sendFile(indexFile)
         })
 
         this._server = http.createServer(this._app)
