@@ -2,40 +2,48 @@ import express from 'express'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
+import { PrerenderServer } from './PrerenderServer'
 
 // ----------------------------------------------------------------------------
 // SpaServer
 // ----------------------------------------------------------------------------
 
-export class SpaServer {
+export class SpaServer extends PrerenderServer {
+    private _staticDir: string
+    private _publicPath: string
+
     private _app: express.Express
     private _server: http.Server
     private _isReady: Promise<void>
 
-    constructor(staticDir: string, entryFile?: string) {
-        this._app = express()
+    constructor(staticDir: string, entryFile: string, publicPath = '/') {
+        super()
+        this._staticDir = staticDir
+        this._publicPath = publicPath
 
         if (!fs.existsSync(staticDir)) {
             throw new Error(`staticDir:"${staticDir}" does not exist`)
         }
 
-        const indexFile = path.join(staticDir, entryFile ?? 'index.html')
+        const indexFile = path.join(staticDir, entryFile)
         if (!fs.existsSync(indexFile)) {
             throw new Error(`indexFile:"${indexFile}" does not exist`)
         }
 
+        // Create Express server
+        this._app = express()
+
         // Handle static files first (i.e. js, css, images)
-        this._app.get('*', express.static(staticDir, {
+        this._app.use(this.publicPath, express.static(this.staticDir, {
             dotfiles: 'allow',
         }))
 
         // Redirect all requests to SPA in index.html
-        this._app.get('*', (req, res) => {
+        this._app.use('*', (req, res) => {
             res.sendFile(indexFile)
         })
 
         this._server = http.createServer(this._app)
-
         this._isReady = new Promise((resolve) => {
             this._server.listen(0, 'localhost', () => {
                 resolve()
@@ -62,5 +70,13 @@ export class SpaServer {
         } else {
             return `http://${address}`
         }
+    }
+
+    get staticDir(): string {
+        return this._staticDir
+    }
+
+    get publicPath(): string {
+        return this._publicPath
     }
 }

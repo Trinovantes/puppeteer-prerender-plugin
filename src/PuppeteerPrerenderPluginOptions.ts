@@ -16,6 +16,7 @@ export interface PuppeteerPrerenderPluginOptions {
     routes: Array<string>
     entryDir: string
     entryFile?: string
+    publicPath?: string
     outputDir?: string
 
     enabled?: boolean
@@ -43,6 +44,9 @@ const schema = {
             type: 'string',
         },
         'entryFile': {
+            type: 'string',
+        },
+        'publicPath': {
             type: 'string',
         },
         'outputDir': {
@@ -101,7 +105,7 @@ const validator = ajv.compile(schema)
 export function isValidOptions(options: unknown): options is PuppeteerPrerenderPluginOptions {
     const isValid = validator(options)
     if (!isValid) {
-        console.warn(validator.errors)
+        console.warn('Invalid PuppeteerPrerenderPluginOptions', validator.errors)
         throw new Error('Invalid PuppeteerPrerenderPluginOptions')
     }
 
