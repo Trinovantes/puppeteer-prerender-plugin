@@ -103,6 +103,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     private async renderRoute(browser: puppeteer.Browser, route: string): Promise<RenderResult> {
         this.logger.info('Rendering', route)
         const page = await browser.newPage()
+        await page.setJavaScriptEnabled(this._options.enablePageJs ?? true)
 
         page.on('pageerror', (err) => {
             this.logger.warn('Puppeteer encountered error while rendering', err)

@@ -21,6 +21,7 @@ export interface PuppeteerPrerenderPluginOptions {
 
     enabled?: boolean
     keepAlive?: boolean
+    enablePageJs?: boolean
     maxConcurrent?: number
     injections?: Array<PageInjection>
     renderAfterEvent?: string
@@ -56,6 +57,9 @@ const schema = {
             type: 'boolean',
         },
         'keepAlive': {
+            type: 'boolean',
+        },
+        'enablePageJs': {
             type: 'boolean',
         },
         'maxConcurrent': {
