@@ -204,10 +204,18 @@ function renderPreloadLink(file: string): string {
     }
 }
 
-function renderCss(file: string): string {
+function renderCss(file?: string): string {
+    if (!file) {
+        return ''
+    }
+
     return `<link rel="stylesheet" href="${file}">\n`
 }
 
-function renderScript(file: string): string {
+function renderScript(file?: string): string {
+    if (!file) {
+        return ''
+    }
+
     return `<script src="${file}" defer></script>\n`
 }
