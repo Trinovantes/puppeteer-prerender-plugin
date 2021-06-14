@@ -103,12 +103,7 @@ function createVueHandler(ssgOptions: SsgOptions, manifest: Record<string, strin
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const vueHandler: express.RequestHandler = async(req: express.Request, res: express.Response, next) => {
         try {
-            const ssrContext: SSRContext = ssgOptions.createSsrContext?.(req, res) ?? {
-                url: req.originalUrl,
-                req: req,
-                res: res,
-            }
-
+            const ssrContext: SSRContext = ssgOptions.createSsrContext?.(req, res) ?? {}
             const { app, router } = await ssgOptions.createApp(ssrContext)
             const routeComponents = getMatchedComponents(router.currentRoute.value)
 
