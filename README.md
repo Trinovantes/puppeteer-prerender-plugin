@@ -1,6 +1,6 @@
 # Puppeteer Prerender Plugin
 
-This is a Webpack 5 plugin for prerendering Single Page Applications (SPA) with Puppeteer. After Webpack emits all of your files, this plugin starts an Express server in your `dist` directory. It then runs Puppeteer on all of your specified routes (e.g. `/about`) and saves the pages' rendered HTML as separate files (e.g. `/dist/about/index.html`).
+This is a Webpack 5 plugin for prerendering Single Page Applications (SPA) with Puppeteer. After Webpack emits all of your files, this plugin starts an Express static server in your `dist` directory. It then runs Puppeteer on all of your specified routes (e.g. `/about`) and saves the pages' rendered HTML as separate files (e.g. `/dist/about/index.html`).
 
 ## Why?
 
@@ -19,7 +19,7 @@ The main benefit of prerendering your pages is for SEO benefits. Normally for an
 Option | Type | Example | Notes
 ---    | ---     | ---     | ---
 `routes` | `Array<string>` | `['/pricing', '/']` | **Required:** Array of routes to render.
-`entryDir` | `string` | `dist` | **Required:** Directory to start the Express server.
+`entryDir` | `string` | `dist` | **Required:** Directory to start the Express static server.
 `entryFile` | `string` | `index.html` | Entry file for your SPA. This is useful if you do not want `dist/index.html` to be overwritten by the `/` route.
 `outputDir` | `string` | `dist` | Output directory for prerendered routes (defaults to `entryDir`).
 `enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | Disabled by default for performance. This option is useful if you wish to only prerender production builds.
