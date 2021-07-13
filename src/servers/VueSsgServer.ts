@@ -194,7 +194,11 @@ function renderHeadLinks(renderContext: RenderContext): string {
     return head
 }
 
-function renderPreloadLink(file: string): string {
+function renderPreloadLink(file?: string): string {
+    if (!file) {
+        return ''
+    }
+
     if (file.endsWith('.js')) {
         return `<link rel="preload" href="${file}" as="script">\n`
     } else if (file.endsWith('.css')) {
