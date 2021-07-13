@@ -1,6 +1,6 @@
 {
     "name": "puppeteer-prerender-plugin",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "description": "Webpack 5 plugin for prerendering SPAs with puppeteer",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
