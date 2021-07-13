@@ -1,4 +1,5 @@
 import express from 'express'
+import proxy from 'express-http-proxy'
 import http from 'http'
 import fs, { readFileSync } from 'fs'
 import { PrerenderServer } from './PrerenderServer'
@@ -18,6 +19,8 @@ export interface SsgOptions {
     clientEntryJs: string
     clientEntryCss?: string
     manifestFile: string
+
+    proxy?: Record<string, string>
 
     createSsrContext?: (req: express.Request, res: express.Response) => SSRContext
     createApp: (ssrContext: SSRContext) => Promise<SsgApp>
@@ -47,6 +50,11 @@ export class VueSsgServer extends PrerenderServer {
 
         // Create Express server
         this._app = express()
+
+        // Proxy reqests
+        for (const [route, proxyDest] of Object.entries(ssgOptions.proxy ?? {})) {
+            this._app.use(route, proxy(proxyDest))
+        }
 
         // Handle static files first (i.e. js, css, images)
         this._app.use(this.publicPath, express.static(this.staticDir, {
