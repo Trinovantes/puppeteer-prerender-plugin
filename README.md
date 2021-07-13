@@ -93,9 +93,9 @@ document.dispatchEvent(new Event('__RENDERED__'))
 
 ## Vue 3 Usage
 
-Vue 3 hydration assumes the markup has been rendered with `@vue/server-renderer::renderToString` function instead of the output markup of a normal SPA. This is due to the fact that `renderToString` outputs additional comment nodes. As a result, trying to hydrate non SSR markup will result in hydration errors.
+Vue 3 hydration assumes the markup has been rendered with `@vue/server-renderer::renderToString` function instead of the output markup of a normal SPA. This is due to the fact that `renderToString` outputs additional comment nodes. As a result, trying to hydrate non-SSR markup will result in hydration errors.
 
-If you wish to prerender Vue 3 apps, you will need to set your `postProcess` callback to empty the `<div id="app">` tag. Otherwise, you will see a "white flash" due to Vue removing the prerendered markup with its client-rendered markup.
+If you wish to prerender Vue 3 apps, you will need to set your `postProcess` callback to empty the `<div id="app">` tag. Otherwise, you will see a "white flash" due to Vue replacing the prerendered markup with its client-rendered markup.
 
 ```ts
 export default {
