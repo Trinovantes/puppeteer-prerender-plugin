@@ -25,6 +25,7 @@ Option | Type | Example | Notes
 `enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | Disabled by default for performance. This option is useful if you wish to only prerender production builds.
 `keepAlive` | `boolean` | `false` | Keep the server alive after prerendering completes. You will need to manually terminate the shell command. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
 `maxConcurrent` | `number` | `10` | Maximum number of concurrent Puppeteer instances. This option is useful for keeping CPU/memory usage down when you have a lot of routes.
+`discoverNewRoutes` | `boolean` | `true` | Try to find new routes by searching for `<a href="/">` tags in render results.
 `injections` | `Array<{key: string, value: unknown}>` | `[{ key: 'isPrerender', value: true }]` | Data to inject into each page with `window[key] = value`. This is useful if you wish to provide data to your app that's only present during prerender.
 `renderAfterEvent` | `string` | `__RENDERED__` | Event name Puppeteer should wait for before saving page contents. You will need to manually dispatch the event in your app via `document.dispatchEvent(new Event('__RENDERED__'))`.
 `renderAfterTime` | `number` | `5000` | Time in ms for Puppeteer to wait before saving page contents.
