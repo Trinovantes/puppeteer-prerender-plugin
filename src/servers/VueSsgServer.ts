@@ -22,7 +22,7 @@ export interface SsgOptions {
 
     proxy?: Record<string, string>
 
-    createSsrContext?: (req: express.Request, res: express.Response) => SSRContext
+    createSsrContext?: (req: express.Request, res: express.Response) => Promise<SSRContext> | SSRContext
     createApp: (ssrContext: SSRContext) => Promise<SsgApp>
     onPostRender?: (app: App, ssrContext: SSRContext) => Promise<void>
 }
@@ -111,7 +111,7 @@ function createVueHandler(ssgOptions: SsgOptions, manifest: Record<string, strin
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const vueHandler: express.RequestHandler = async(req: express.Request, res: express.Response, next) => {
         try {
-            const ssrContext: SSRContext = ssgOptions.createSsrContext?.(req, res) ?? {}
+            const ssrContext: SSRContext = await ssgOptions.createSsrContext?.(req, res) ?? {}
             const { app, router } = await ssgOptions.createApp(ssrContext)
             const routeComponents = getMatchedComponents(router.currentRoute.value)
 
