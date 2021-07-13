@@ -21,6 +21,7 @@ Option | Type | Example | Notes
 `routes` | `Array<string>` | `['/pricing', '/']` | **Required:** Array of routes to render.
 `entryDir` | `string` | `dist` | **Required:** Directory to start the Express static server.
 `entryFile` | `string` | `index.html` | Entry file for your SPA. This is useful if you do not want `dist/index.html` to be overwritten by the `/` route.
+`publicPath` | `string` | `/public` | Public path to serve static files from `entryDir`.
 `outputDir` | `string` | `dist` | Output directory for prerendered routes (defaults to `entryDir`).
 `enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | Disabled by default for performance. This option is useful if you wish to only prerender production builds.
 `keepAlive` | `boolean` | `false` | Keep the server alive after prerendering completes. You will need to manually terminate the shell command. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
