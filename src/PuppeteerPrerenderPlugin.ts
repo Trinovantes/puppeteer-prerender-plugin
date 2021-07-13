@@ -104,7 +104,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         if (entryFile.endsWith('.html')) {
             server = new SpaServer(this._options.entryDir, entryFile, this._options.publicPath)
         } else if (entryFile.endsWith('.js')) {
-            const entryPath = path.resolve(entryFile)
+            const entryPath = path.resolve(this._options.entryDir, entryFile)
             if (!fs.existsSync(entryPath)) {
                 throw new Error(`entryFile:${entryPath} does not exist`)
             }
