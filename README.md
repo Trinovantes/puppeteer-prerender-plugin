@@ -20,13 +20,13 @@ Option | Type | Example | Notes
 ---    | ---     | ---     | ---
 `routes` | `Array<string>` | `['/pricing', '/']` | **Required:** Array of routes to render.
 `entryDir` | `string` | `dist` | **Required:** Directory to start the Express static server.
-`entryFile` | `string` | `index.html` | Entry file for your SPA. This is useful if you do not want `dist/index.html` to be overwritten by the `/` route.
-`publicPath` | `string` | `/public` | Public path to serve static files from `entryDir`.
+`entryFile` | `string` | `app.html` | Entry file for your SPA (defaults to `index.html`). Must be located in `entryDir` directory. This is useful if you do not want `dist/index.html` to be overwritten by the `/` route.
+`publicPath` | `string` | `/public` | Public path to serve static files from `entryDir` (defaults to `/`).
 `outputDir` | `string` | `dist` | Output directory for prerendered routes (defaults to `entryDir`).
-`enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | Disabled by default for performance. This option is useful if you wish to only prerender production builds.
-`keepAlive` | `boolean` | `false` | Keep the server alive after prerendering completes. You will need to manually terminate the shell command. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
-`maxConcurrent` | `number` | `10` | Maximum number of concurrent Puppeteer instances. This option is useful for keeping CPU/memory usage down when you have a lot of routes.
-`discoverNewRoutes` | `boolean` | `true` | Try to find new routes by searching for `<a href="/">` tags in render results.
+`enabled` | `boolean` | `process.env.NODE_ENV !== 'development'` | **Disabled by default for performance.** This option is useful if you wish to only prerender production builds.
+`keepAlive` | `boolean` | `false` | Disabled by default. Enable this to keep the server alive after prerendering completes. You will need to manually terminate the shell command afterwards. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
+`maxConcurrent` | `number` | `10` | Maximum number of concurrent Puppeteer instances (defaults to `routes.length`). This option is useful for keeping CPU/memory usage down when you have a lot of routes.
+`discoverNewRoutes` | `boolean` | `true` | Disabled by default for performance. Enable this to also prerender routes linked by `a[href^=/]` tags in rendered results.
 `injections` | `Array<{key: string, value: unknown}>` | `[{ key: 'isPrerender', value: true }]` | Data to inject into each page with `window[key] = value`. This is useful if you wish to provide data to your app that's only present during prerender.
 `renderAfterEvent` | `string` | `__RENDERED__` | Event name Puppeteer should wait for before saving page contents. You will need to manually dispatch the event in your app via `document.dispatchEvent(new Event('__RENDERED__'))`.
 `renderAfterTime` | `number` | `5000` | Time in ms for Puppeteer to wait before saving page contents.
