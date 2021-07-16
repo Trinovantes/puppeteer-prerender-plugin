@@ -157,7 +157,6 @@ async function render(renderContext: RenderContext): Promise<string> {
         <head ${renderContext.ssrContext.teleports?.headAttrs ?? ''}>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link rel="icon" type="image/ico" href="/favicon.ico">
             ${renderPreloadLink(mainjs)}
             ${renderHeadLinks(renderContext)}
             ${renderContext.ssrContext.teleports?.head ?? ''}
