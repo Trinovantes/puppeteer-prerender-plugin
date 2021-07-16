@@ -68,7 +68,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
 
         if (this._options.renderFirstRouteAlone) {
-            const firstRoute = this._queuedRoutes.pop()
+            const firstRoute = this._queuedRoutes.shift()
             assert(firstRoute)
             await this.renderRoute(browser, server, firstRoute)
         }
@@ -78,7 +78,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
             const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
 
             await batchRequests(totalRoutes, maxConcurrent, async() => {
-                const currentRoute = this._queuedRoutes.pop()
+                const currentRoute = this._queuedRoutes.shift()
                 assert(currentRoute)
                 await this.renderRoute(browser, server, currentRoute)
             })
