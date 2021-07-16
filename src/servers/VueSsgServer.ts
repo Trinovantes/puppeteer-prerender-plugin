@@ -149,7 +149,7 @@ async function render(renderContext: RenderContext): Promise<string> {
     const appHtml = await renderToString(renderContext.app, renderContext.ssrContext)
     await renderContext.ssgOptions.onPostRender?.(renderContext.app, renderContext.ssrContext)
 
-    const mainjs = renderContext.manifest[renderContext.ssgOptions.clientEntryJs]
+    const mainJs = renderContext.manifest[renderContext.ssgOptions.clientEntryJs]
 
     return `
         <!DOCTYPE html ${renderContext.ssrContext.teleports?.htmlAttrs ?? ''}>
@@ -157,7 +157,7 @@ async function render(renderContext: RenderContext): Promise<string> {
         <head ${renderContext.ssrContext.teleports?.headAttrs ?? ''}>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            ${renderPreloadLink(mainjs)}
+            ${renderPreloadLink(mainJs)}
             ${renderHeadLinks(renderContext)}
             ${renderContext.ssrContext.teleports?.head ?? ''}
         </head>
@@ -165,7 +165,7 @@ async function render(renderContext: RenderContext): Promise<string> {
             <noscript>This website requires JavaScript</noscript>
             <div id="app">${appHtml}</div>
             ${renderContext.ssrContext.teleports?.body ?? ''}
-            ${renderScript(mainjs)}
+            ${renderScript(mainJs)}
         </body>
         </html>
     `
