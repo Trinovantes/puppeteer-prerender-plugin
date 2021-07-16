@@ -27,9 +27,15 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     private _options: PuppeteerPrerenderPluginOptions
     private _logger?: WebpackLogger
 
+    private _processedRoutes: Set<string>
+    private _queuedRoutes: Array<string>
+
     constructor(options: PuppeteerPrerenderPluginOptions) {
         assert(isValidOptions(options))
         this._options = options
+
+        this._processedRoutes = new Set()
+        this._queuedRoutes = [...options.routes] // Create copy so we don't mutate the input
     }
 
     apply(compiler: Compiler): void {
@@ -50,45 +56,35 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     }
 
     private async renderRoutes(): Promise<void> {
+        if (this._queuedRoutes.length < 1) {
+            this.logger.info('Skipping prerender because routes array is empty.')
+            return
+        }
+
         this.logger.info('Initializing PrerenderServer')
         const server = await this.initServer()
 
         this.logger.info('Initializing Puppeteer')
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
 
-        const processedRoutes: Set<string> = new Set()
-        const queuedRoutes: Set<string> = new Set(this._options.routes)
+        if (this._options.renderFirstRouteAlone) {
+            const firstRoute = this._queuedRoutes.pop()
+            assert(firstRoute)
+            await this.renderRoute(browser, server, firstRoute)
+        }
 
-        while (queuedRoutes.size > 0) {
-            const routes = [...queuedRoutes]
-            queuedRoutes.clear()
+        while (this._queuedRoutes.length > 0) {
+            const totalRoutes = this._queuedRoutes.length
+            const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
 
-            const maxConcurrent = this._options.maxConcurrent ?? routes.length
-            await batchRequests(routes.length, maxConcurrent, async(routeIdx) => {
-                if (processedRoutes.has(routes[routeIdx])) {
-                    return
-                }
-
-                // Remember route so it doesn't get processed again
-                processedRoutes.add(routes[routeIdx])
-
-                const address = server.baseUrl + routes[routeIdx]
-                const renderResult = await this.renderRoute(browser, address)
-                this._options.postProcess?.(renderResult)
-
-                if (this._options.discoverNewRoutes) {
-                    const newRoutes = findRoutesInPage(renderResult.html)
-                    newRoutes.forEach((route) => queuedRoutes.add(route))
-                }
-
-                const outputDir = this._options.outputDir ?? this._options.entryDir
-                const outputPath = path.join(outputDir, renderResult.route, 'index.html')
-                await mkdir(path.dirname(outputPath), { recursive: true })
-                await writeFile(outputPath, renderResult.html.trim())
+            await batchRequests(totalRoutes, maxConcurrent, async() => {
+                const currentRoute = this._queuedRoutes.pop()
+                assert(currentRoute)
+                await this.renderRoute(browser, server, currentRoute)
             })
         }
 
-        this.logger.info(`Rendered ${processedRoutes.size} route(s)`)
+        this.logger.info(`Rendered ${this._processedRoutes.size} route(s)`)
         await browser.close()
 
         if (!this._options.keepAlive) {
@@ -121,7 +117,32 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return server
     }
 
-    private async renderRoute(browser: puppeteer.Browser, route: string): Promise<RenderResult> {
+    private async renderRoute(browser: puppeteer.Browser, server: PrerenderServer, route: string): Promise<void> {
+        if (this._processedRoutes.has(route)) {
+            return
+        }
+
+        this._processedRoutes.add(route)
+
+        // Visit the route with puppeteer
+        const address = server.baseUrl + route
+        const renderResult = await this.renderRouteWithPuppeteer(browser, address)
+        this._options.postProcess?.(renderResult)
+
+        // Write result to disk
+        const outputDir = this._options.outputDir ?? this._options.entryDir
+        const outputPath = path.join(outputDir, renderResult.route, 'index.html')
+        await mkdir(path.dirname(outputPath), { recursive: true })
+        await writeFile(outputPath, renderResult.html.trim())
+
+        // Find new routes for future runs
+        if (this._options.discoverNewRoutes) {
+            const newRoutes = findRoutesInPage(renderResult.html)
+            newRoutes.forEach((route) => this._queuedRoutes.push(route))
+        }
+    }
+
+    private async renderRouteWithPuppeteer(browser: puppeteer.Browser, route: string): Promise<RenderResult> {
         this.logger.info('Rendering', route)
         const page = await browser.newPage()
         await page.setJavaScriptEnabled(this._options.enablePageJs ?? true)

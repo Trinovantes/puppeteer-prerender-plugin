@@ -24,6 +24,7 @@ export interface PuppeteerPrerenderPluginOptions {
     enablePageJs?: boolean
     maxConcurrent?: number
     discoverNewRoutes?: boolean
+    renderFirstRouteAlone?: boolean
     injections?: Array<PageInjection>
     renderAfterEvent?: string
     renderAfterTime?: number
@@ -68,6 +69,9 @@ const schema = {
             minimum: 1,
         },
         'discoverNewRoutes': {
+            type: 'boolean',
+        },
+        'renderFirstRouteAlone': {
             type: 'boolean',
         },
         'injections': {

@@ -27,6 +27,7 @@ Option | Type | Example | Notes
 `keepAlive` | `boolean` | `false` | Disabled by default. Enable this to keep the server alive after prerendering completes. You will need to manually terminate the shell command afterwards. This is useful if you wish to inspect the actual pages that Puppeteer has seen.
 `maxConcurrent` | `number` | `10` | Maximum number of concurrent Puppeteer instances (defaults to `routes.length`). This option is useful for keeping CPU/memory usage down when you have a lot of routes.
 `discoverNewRoutes` | `boolean` | `true` | Disabled by default for performance. Enable this to also prerender routes linked by `a[href^=/]` tags in rendered results.
+`renderFirstRouteAlone` | `boolean` | `true` | Disabled by default for performance. Enable this to prerender the first route before rendering the rest concurrently. This is useful if you wish to cache the first route's state globally for future routes.
 `injections` | `Array<{key: string, value: unknown}>` | `[{ key: 'isPrerender', value: true }]` | Data to inject into each page with `window[key] = value`. This is useful if you wish to provide data to your app that's only present during prerender.
 `renderAfterEvent` | `string` | `__RENDERED__` | Event name Puppeteer should wait for before saving page contents. You will need to manually dispatch the event in your app via `document.dispatchEvent(new Event('__RENDERED__'))`.
 `renderAfterTime` | `number` | `5000` | Time in ms for Puppeteer to wait before saving page contents.
