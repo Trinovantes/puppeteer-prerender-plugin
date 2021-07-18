@@ -68,9 +68,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
 
         if (this._options.renderFirstRouteAlone) {
-            const firstRoute = this._queuedRoutes.shift()
-            assert(firstRoute)
-            await this.renderRoute(browser, server, firstRoute)
+            await this.renderRoute(browser, server)
         }
 
         while (this._queuedRoutes.length > 0) {
@@ -78,9 +76,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
             const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
 
             await batchRequests(totalRoutes, maxConcurrent, async() => {
-                const currentRoute = this._queuedRoutes.shift()
-                assert(currentRoute)
-                await this.renderRoute(browser, server, currentRoute)
+                await this.renderRoute(browser, server)
             })
         }
 
@@ -117,15 +113,18 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return server
     }
 
-    private async renderRoute(browser: puppeteer.Browser, server: PrerenderServer, route: string): Promise<void> {
-        if (this._processedRoutes.has(route)) {
+    private async renderRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
+        const currentRoute = this._queuedRoutes.shift()
+        assert(currentRoute)
+
+        if (this._processedRoutes.has(currentRoute)) {
             return
         }
 
-        this._processedRoutes.add(route)
+        this._processedRoutes.add(currentRoute)
 
         // Visit the route with puppeteer
-        const address = server.baseUrl + route
+        const address = server.baseUrl + currentRoute
         const renderResult = await this.renderRouteWithPuppeteer(browser, address)
         this._options.postProcess?.(renderResult)
 
