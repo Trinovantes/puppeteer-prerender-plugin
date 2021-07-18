@@ -13,7 +13,7 @@ export interface SsgApp {
     router: Router
 }
 
-export interface SsgOptions {
+export interface SsgOptions<S = SSRContext> {
     staticDir: string
     publicPath?: string
     clientEntryJs: string
@@ -22,9 +22,9 @@ export interface SsgOptions {
 
     proxy?: Record<string, string>
 
-    createSsrContext?: (req: express.Request, res: express.Response) => Promise<SSRContext> | SSRContext
-    createApp: (ssrContext: SSRContext) => Promise<SsgApp>
-    onPostRender?: (app: App, ssrContext: SSRContext) => Promise<void>
+    createSsrContext?: (req: express.Request, res: express.Response) => Promise<S> | S
+    createApp: (ssrContext: S) => Promise<SsgApp>
+    onPostRender?: (app: App, ssrContext: S) => Promise<void>
 }
 
 export class VueSsgServer extends PrerenderServer {
