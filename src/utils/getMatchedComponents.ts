@@ -2,6 +2,7 @@ import { RouteComponent, RouteLocationNormalizedLoaded } from 'vue-router'
 
 export type MatchedComponent = RouteComponent & {
     components?: Record<string, MatchedComponent>
+    __file?: string
 }
 
 export function getMatchedComponents(route: RouteLocationNormalizedLoaded): Array<MatchedComponent> {

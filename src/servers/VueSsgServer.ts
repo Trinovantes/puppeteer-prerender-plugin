@@ -1,19 +1,21 @@
 import express from 'express'
 import proxy from 'express-http-proxy'
 import http from 'http'
-import fs, { readFileSync } from 'fs'
+import fs from 'fs'
 import { PrerenderServer } from './PrerenderServer'
-import { renderToString, SSRContext } from '@vue/server-renderer'
+import { SSRContext } from '@vue/server-renderer'
 import { App, createSSRApp } from 'vue'
 import { Router } from 'vue-router'
-import { getMatchedComponents, MatchedComponent } from '../utils/getMatchedComponents'
+import { getMatchedComponents } from '../utils/getMatchedComponents'
+import { createAsyncHandler } from '../utils/createAsyncHandler'
+import { VueSsrRenderer } from '../utils/VueSsrRenderer'
 
 export interface SsgApp {
     app: ReturnType<typeof createSSRApp>
     router: Router
 }
 
-export interface SsgOptions<S extends SSRContext> {
+export interface SsgOptions<AppContext extends SSRContext> {
     staticDir: string
     publicPath?: string
     clientEntryJs: string
@@ -22,20 +24,19 @@ export interface SsgOptions<S extends SSRContext> {
 
     proxy?: Record<string, string>
 
-    createSsrContext?: (req: express.Request, res: express.Response) => Promise<S> | S
-    createApp: (ssrContext: S) => Promise<SsgApp>
-    onPostRender?: (app: App, ssrContext: S) => Promise<void>
+    createSsrContext?: (req: express.Request, res: express.Response) => Promise<AppContext>
+    createApp: (ssrContext: AppContext) => Promise<SsgApp>
+    onPostRender?: (app: App, ssrContext: AppContext) => Promise<void>
 }
 
-export class VueSsgServer<S extends SSRContext> extends PrerenderServer {
-    private _ssgOptions: SsgOptions<S>
-    private _manifest: Record<string, string>
+export class VueSsgServer<AppContext extends SSRContext> extends PrerenderServer {
+    private _ssgOptions: SsgOptions<AppContext>
 
     private _app: express.Express
     private _server: http.Server
     private _isReady: Promise<void>
 
-    constructor(ssgOptions: SsgOptions<S>) {
+    constructor(ssgOptions: SsgOptions<AppContext>) {
         super()
 
         if (!fs.existsSync(ssgOptions.staticDir)) {
@@ -47,7 +48,6 @@ export class VueSsgServer<S extends SSRContext> extends PrerenderServer {
         }
 
         this._ssgOptions = ssgOptions
-        this._manifest = JSON.parse(readFileSync(this._ssgOptions.manifestFile).toString('utf-8')) as Record<string, string>
 
         // Create Express server
         this._app = express()
@@ -103,116 +103,21 @@ export class VueSsgServer<S extends SSRContext> extends PrerenderServer {
     }
 
     private createVueHandler() {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const vueHandler: express.RequestHandler = async(req: express.Request, res: express.Response, next) => {
-            try {
-                const ssrContext = (await this._ssgOptions.createSsrContext?.(req, res) ?? {}) as S
-                const { app, router } = await this._ssgOptions.createApp(ssrContext)
-                const routeComponents = getMatchedComponents(router.currentRoute.value)
+        const renderer = new VueSsrRenderer(this._ssgOptions.manifestFile)
 
-                // Render the app on the server
-                const html = await this.render(app, ssrContext, routeComponents)
+        return createAsyncHandler(async(req, res) => {
+            const appContext = (await this._ssgOptions.createSsrContext?.(req, res) ?? {}) as AppContext
+            const { app, router } = await this._ssgOptions.createApp(appContext)
+            const routeComponents = getMatchedComponents(router.currentRoute.value)
 
-                res.status(200)
-                res.send(html)
-            } catch (err) {
-                const error = err as Error
-                console.warn('Failed to render Vue App', error)
-                res.status(500)
-                res.send(`<pre>${error.stack}</pre>`)
-            }
-        }
+            // Render the app on the server
+            const html = await renderer.render(app, appContext, routeComponents, async() => {
+                await this._ssgOptions.onPostRender?.(app, appContext)
+            })
 
-        return vueHandler
+            res.setHeader('Content-Type', 'text/html')
+            res.status(200)
+            res.send(html)
+        })
     }
-
-    private async render(vueApp: App, ssrContext: S, routeComponents: Array<MatchedComponent>): Promise<string> {
-        const appHtml = await renderToString(vueApp, ssrContext)
-        await this._ssgOptions.onPostRender?.(vueApp, ssrContext)
-
-        const mainJs = this._manifest[this._ssgOptions.clientEntryJs]
-
-        return `
-            <!DOCTYPE html ${ssrContext.teleports?.htmlAttrs ?? ''}>
-            <html lang="en">
-            <head ${ssrContext.teleports?.headAttrs ?? ''}>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                ${renderPreloadLink(mainJs)}
-                ${this.renderHeadLinks(routeComponents)}
-                ${ssrContext.teleports?.head ?? ''}
-            </head>
-            <body ${ssrContext.teleports?.bodyAttrs ?? ''}>
-                <noscript>This website requires JavaScript</noscript>
-                <div id="app">${appHtml}</div>
-                ${ssrContext.teleports?.body ?? ''}
-                ${renderScript(mainJs)}
-            </body>
-            </html>
-        `
-    }
-
-    private renderHeadLinks(routeComponents: Array<MatchedComponent>): string {
-        let head = ''
-
-        const clientEntryCss = this._ssgOptions.clientEntryCss
-        if (clientEntryCss) {
-            head += renderCss(this._manifest[clientEntryCss])
-        }
-
-        // Try to see if any of the matched components in our route exists in the manifest
-        // If it exists, then insert a preload script for performance
-        for (const c of routeComponents) {
-            const componentName = c.name
-            if (!componentName) {
-                continue
-            }
-
-            const js = `${componentName}.js`
-            if (js in this._manifest) {
-                head += renderPreloadLink(this._manifest[js])
-            }
-
-            const css = `${componentName}.css`
-            if (css in this._manifest) {
-                head += renderCss(this._manifest[css])
-            }
-        }
-
-        return head
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Render Helpers
-// -----------------------------------------------------------------------------
-
-function renderPreloadLink(file?: string): string {
-    if (!file) {
-        return ''
-    }
-
-    if (file.endsWith('.js')) {
-        return `<link rel="preload" href="${file}" as="script">\n`
-    } else if (file.endsWith('.css')) {
-        return `<link rel="preload" href="${file}" as="style">\n`
-    } else {
-        return ''
-    }
-}
-
-function renderCss(file?: string): string {
-    if (!file) {
-        return ''
-    }
-
-    return `<link rel="stylesheet" href="${file}">\n`
-}
-
-function renderScript(file?: string): string {
-    if (!file) {
-        return ''
-    }
-
-    return `<script src="${file}" defer></script>\n`
 }
