@@ -33,7 +33,7 @@ export class VueSsrRenderer<AppContext extends SSRContext> {
                 ${appContext.teleports?.head ?? ''}
             </head>
             <body ${appContext.teleports?.bodyAttrs ?? ''}>
-                <noscript>This website requires JavaScript</noscript>
+                ${appContext.teleports?.noScript ?? ''}
                 <div id="app">${appHtml}</div>
                 ${appContext.teleports?.body ?? ''}
                 ${this.renderScript('vendors.js')}
