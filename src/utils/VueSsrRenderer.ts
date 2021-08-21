@@ -1,4 +1,4 @@
-import { renderToString, SSRContext } from '@vue/server-renderer'
+import { SSRContext } from '@vue/server-renderer'
 import { readFileSync } from 'fs'
 import { App } from 'vue'
 import { getFileName } from './getFileName'
@@ -19,6 +19,7 @@ export class VueSsrRenderer<AppContext extends SSRContext> {
     }
 
     async render(app: App, appContext: AppContext, routeComponents: Array<MatchedComponent>, onPostRender?: OnPostRenderFn): Promise<string> {
+        const { renderToString } = await import('@vue/server-renderer')
         const headLinks = this.renderHeadLinks(routeComponents)
         const appHtml = await renderToString(app, appContext)
         await onPostRender?.()
