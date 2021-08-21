@@ -35,7 +35,8 @@
     "peerDependencies": {
         "@vue/server-renderer": "^3",
         "vue": "^3.",
-        "vue-router": "^4"
+        "vue-router": "^4",
+        "webpack": "^5.28.0"
     },
     "peerDependenciesMeta": {
         "@vue/server-renderer": {
