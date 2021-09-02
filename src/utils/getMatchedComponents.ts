@@ -1,4 +1,4 @@
-import { RouteComponent, RouteLocationNormalizedLoaded } from 'vue-router'
+import type { RouteComponent, RouteLocationNormalizedLoaded } from 'vue-router'
 
 export type MatchedComponent = RouteComponent & {
     components?: Record<string, MatchedComponent>

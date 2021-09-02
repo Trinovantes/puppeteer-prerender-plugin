@@ -1,8 +1,8 @@
-import { SSRContext } from '@vue/server-renderer'
+import type { SSRContext } from '@vue/server-renderer'
+import type { App } from 'vue'
+import type { MatchedComponent } from './getMatchedComponents'
 import { readFileSync } from 'fs'
-import { App } from 'vue'
 import { getFileName } from './getFileName'
-import { MatchedComponent } from './getMatchedComponents'
 
 // -----------------------------------------------------------------------------
 // VueSsrServer

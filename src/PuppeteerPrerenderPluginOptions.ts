@@ -1,5 +1,5 @@
 import Ajv from 'ajv'
-import puppeteer from 'puppeteer'
+import type puppeteer from 'puppeteer'
 
 export interface PageInjection {
     key: string

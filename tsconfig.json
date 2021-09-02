@@ -18,6 +18,7 @@
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitOverride": true,
+        "importsNotUsedAsValues": "error",
 
         "outDir": "dist",
         "baseUrl": ".",
