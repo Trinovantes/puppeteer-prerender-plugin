@@ -23,6 +23,7 @@ export interface SsgOptions<AppContext extends SSRContext> {
     manifestFile: string
 
     proxy?: Record<string, string>
+    handlers?: Record<string, express.Handler>
 
     createSsrContext?: (req: express.Request, res: express.Response) => Promise<AppContext>
     createApp: (ssrContext: AppContext) => Promise<SsgApp>
@@ -61,6 +62,11 @@ export class VueSsgServer<AppContext extends SSRContext> extends PrerenderServer
         this._app.use(this.publicPath, express.static(this.staticDir, {
             dotfiles: 'allow',
         }))
+
+        // Handle any custom routes (e.g. API handlers)
+        for (const [route, handler] of Object.entries(ssgOptions.handlers ?? {})) {
+            this._app.use(route, handler)
+        }
 
         // Redirect all requests to Vue SSR server
         this._app.use('*', this.createVueHandler())
