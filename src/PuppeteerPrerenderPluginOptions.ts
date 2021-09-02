@@ -29,7 +29,7 @@ export interface PuppeteerPrerenderPluginOptions {
     renderAfterEvent?: string
     renderAfterTime?: number
 
-    postProcess?: (result: RenderResult) => void
+    postProcess?: (result: RenderResult) => void | Promise<void>
     puppeteerOptions?: Parameters<typeof puppeteer.launch>[0]
 }
 

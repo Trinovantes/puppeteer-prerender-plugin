@@ -126,7 +126,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         // Visit the route with puppeteer
         const address = server.baseUrl + currentRoute
         const renderResult = await this.renderRouteWithPuppeteer(browser, address)
-        this._options.postProcess?.(renderResult)
+        await this._options.postProcess?.(renderResult)
 
         // Write result to disk
         const outputDir = this._options.outputDir ?? this._options.entryDir
