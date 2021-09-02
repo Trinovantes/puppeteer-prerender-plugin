@@ -67,6 +67,9 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         this.logger.info('Initializing Puppeteer')
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
 
+        // Separate home route ('/') from the rest if it exists so that it can be rendered last
+        const homeRoute = this.dequeueHomeRoute()
+
         if (this._options.renderFirstRouteAlone) {
             await this.renderNextRoute(browser, server)
         }
@@ -79,6 +82,11 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
                 await this.renderNextRoute(browser, server)
             })
         }
+
+        homeRoute.forEach((route) => this._queuedRoutes.push(route))
+        await this.renderNextRoute(browser, server)
+
+        assert(this._queuedRoutes.length === 0)
 
         this.logger.info(`Rendered ${this._processedRoutes.size} route(s)`)
         await browser.close()
@@ -111,6 +119,15 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         await server.isServerReady()
 
         return server
+    }
+
+    private dequeueHomeRoute(): Array<string> {
+        const homeIdx = this._queuedRoutes.findIndex((route) => route === '/')
+        if (homeIdx < 0) {
+            return []
+        }
+
+        return this._queuedRoutes.splice(homeIdx, 1)
     }
 
     private async renderNextRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
