@@ -115,7 +115,9 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
 
     private async renderNextRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
         const currentRoute = this._queuedRoutes.shift()
-        assert(currentRoute)
+        if (!currentRoute) {
+            return
+        }
 
         if (this._processedRoutes.has(currentRoute)) {
             return
