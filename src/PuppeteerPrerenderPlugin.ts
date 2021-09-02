@@ -42,11 +42,6 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         this._logger = compiler.getInfrastructureLogger(PLUGIN_NAME)
 
         compiler.hooks.afterEmit.tapPromise(PLUGIN_NAME, async() => {
-            if (!this._options.enabled) {
-                this.logger.info('Skipping prerender because PuppeteerPrerenderPluginOptions.enabled is set to false')
-                return
-            }
-
             await this.renderRoutes()
         })
     }
@@ -56,8 +51,13 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     }
 
     private async renderRoutes(): Promise<void> {
+        if (!this._options.enabled) {
+            this.logger.info('Skipping prerender because PuppeteerPrerenderPluginOptions.enabled is set to false')
+            return
+        }
+
         if (this._queuedRoutes.length < 1) {
-            this.logger.info('Skipping prerender because routes array is empty.')
+            this.logger.info('Skipping prerender because routes array is empty')
             return
         }
 
