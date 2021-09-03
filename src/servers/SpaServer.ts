@@ -2,13 +2,13 @@ import express from 'express'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
-import { PrerenderServer } from './PrerenderServer'
+import type { PrerenderServer } from './PrerenderServer'
 
 // ----------------------------------------------------------------------------
 // SpaServer
 // ----------------------------------------------------------------------------
 
-export class SpaServer extends PrerenderServer {
+export class SpaServer implements PrerenderServer {
     private _staticDir: string
     private _publicPath: string
 
@@ -17,7 +17,6 @@ export class SpaServer extends PrerenderServer {
     private _isReady: Promise<void>
 
     constructor(staticDir: string, entryFile: string, publicPath = '/') {
-        super()
         this._staticDir = staticDir
         this._publicPath = publicPath
 

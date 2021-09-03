@@ -2,7 +2,7 @@ import express from 'express'
 import proxy from 'express-http-proxy'
 import http from 'http'
 import fs from 'fs'
-import { PrerenderServer } from './PrerenderServer'
+import type { PrerenderServer } from './PrerenderServer'
 import type { SSRContext } from '@vue/server-renderer'
 import type { App, createSSRApp } from 'vue'
 import type { Router } from 'vue-router'
@@ -30,7 +30,7 @@ export interface SsgOptions<AppContext extends SSRContext> {
     onPostRender?: (app: App, ssrContext: AppContext) => Promise<void>
 }
 
-export class VueSsgServer<AppContext extends SSRContext> extends PrerenderServer {
+export class VueSsgServer<AppContext extends SSRContext> implements PrerenderServer {
     private _ssgOptions: SsgOptions<AppContext>
 
     private _app: express.Express
@@ -38,8 +38,6 @@ export class VueSsgServer<AppContext extends SSRContext> extends PrerenderServer
     private _isReady: Promise<void>
 
     constructor(ssgOptions: SsgOptions<AppContext>) {
-        super()
-
         if (!fs.existsSync(ssgOptions.staticDir)) {
             throw new Error(`staticDir:"${ssgOptions.staticDir}" does not exist`)
         }

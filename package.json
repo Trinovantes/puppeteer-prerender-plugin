@@ -17,12 +17,41 @@
         "dev": "  cross-env NODE_ENV=development tsc --watch",
         "build": "cross-env NODE_ENV=production  tsc",
         "prepublishOnly": "rm -rf ./dist && yarn build",
-        "lint": "eslint --ext '.ts' --ignore-path .gitignore ."
+        "lint": "eslint --ext '.ts' --ignore-path .gitignore .",
+        "test": "jest"
     },
     "babel": {
         "presets": [
             "@babel/preset-env",
             "@babel/preset-typescript"
+        ],
+        "plugins": [
+            [
+                "@babel/transform-runtime"
+            ],
+            [
+                "babel-plugin-root-import",
+                {
+                    "paths": [
+                        {
+                            "rootPathSuffix": "./src/",
+                            "rootPathPrefix": "@/"
+                        }
+                    ]
+                }
+            ],
+            [
+                "transform-define",
+                {
+                    "DEFINE.IS_DEV": true
+                }
+            ]
+        ]
+    },
+    "jest": {
+        "bail": true,
+        "setupFiles": [
+            "./tests/setup.ts"
         ]
     },
     "dependencies": {
@@ -51,23 +80,28 @@
     },
     "devDependencies": {
         "@babel/core": "^7.12.10",
+        "@babel/plugin-transform-runtime": "^7.15.0",
         "@babel/preset-env": "^7.12.11",
         "@babel/preset-typescript": "^7.12.7",
         "@babel/register": "^7.13.14",
         "@types/express": "^4.17.11",
         "@types/express-http-proxy": "^1.6.2",
+        "@types/jest": "^27.0.1",
         "@types/jsdom": "^16.2.13",
         "@types/node": "^14",
         "@types/webpack": "^5.28.0",
         "@typescript-eslint/eslint-plugin": "^4.4.0",
         "@typescript-eslint/parser": "^4.2.0",
         "@vue/server-renderer": "^3",
+        "babel-plugin-root-import": "^6.6.0",
+        "babel-plugin-transform-define": "^2.0.0",
         "cross-env": "^7.0.3",
         "eslint": "^7.9.0",
         "eslint-config-standard": "^16.0.2",
         "eslint-plugin-import": "^2.22.0",
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
+        "jest": "^27.1.0",
         "typescript": "^4.2.4",
         "vue": "^3",
         "vue-router": "^4"

@@ -50,7 +50,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return this._logger ?? console
     }
 
-    private async renderRoutes(): Promise<void> {
+    async renderRoutes(): Promise<void> {
         if (!this._options.enabled) {
             this.logger.info('Skipping prerender because PuppeteerPrerenderPluginOptions.enabled is set to false')
             return
@@ -96,7 +96,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         }
     }
 
-    private async initServer(): Promise<PrerenderServer> {
+    async initServer(): Promise<PrerenderServer> {
         const entryFile = this._options.entryFile ?? 'index.html'
         this.logger.info('Initializing PrerenderServer', entryFile)
 
@@ -121,7 +121,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return server
     }
 
-    private dequeueHomeRoute(): Array<string> {
+    dequeueHomeRoute(): Array<string> {
         const homeIdx = this._queuedRoutes.findIndex((route) => route === '/')
         if (homeIdx < 0) {
             return []
@@ -130,7 +130,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return this._queuedRoutes.splice(homeIdx, 1)
     }
 
-    private async renderNextRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
+    async renderNextRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
         const currentRoute = this._queuedRoutes.shift()
         if (!currentRoute) {
             return
@@ -160,7 +160,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         }
     }
 
-    private async renderRouteWithPuppeteer(browser: puppeteer.Browser, route: string): Promise<RenderResult> {
+    async renderRouteWithPuppeteer(browser: puppeteer.Browser, route: string): Promise<RenderResult> {
         this.logger.info('Rendering', route)
         const page = await browser.newPage()
         await page.setJavaScriptEnabled(this._options.enablePageJs ?? true)

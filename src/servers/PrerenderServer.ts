@@ -1,7 +1,7 @@
-export abstract class PrerenderServer {
-    abstract isServerReady(): Promise<void>
-    abstract destroy(): void
-    abstract get baseUrl(): string
-    abstract get staticDir(): string
-    abstract get publicPath(): string
+export interface PrerenderServer {
+    isServerReady(): Promise<void>
+    destroy(): void
+    get baseUrl(): string
+    get staticDir(): string
+    get publicPath(): string
 }
