@@ -10,7 +10,7 @@
         "src/*"
     ],
     "repository": "https://github.com/Trinovantes/puppeteer-prerender-plugin",
-    "author": "Trinovantes",
+    "author": "Stephen Li <hello@stephenli.ca> (https://www.stephenli.ca)",
     "license": "MIT",
     "private": false,
     "scripts": {
