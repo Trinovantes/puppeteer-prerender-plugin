@@ -87,4 +87,87 @@ describe('PuppeteerPrerenderPlugin', () => {
             expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(3, expect.anything(), '/')
         })
     }
+
+    test('discoverNewRoutes=true renderFirstRouteAlone=false', async() => {
+        const plugin = new PuppeteerPrerenderPlugin({
+            enabled: true,
+            routes: ['/'],
+            entryDir: '/dist',
+            renderFirstRouteAlone: false,
+            discoverNewRoutes: true,
+        })
+
+        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
+            const result: RenderResult = {
+                originalRoute: '',
+                route: '',
+                html: '<a href="/test">Link</a>',
+            }
+
+            return new Promise((resolve) => resolve(result))
+        })
+
+        await plugin.renderRoutes()
+
+        expect(plugin.processedRoutes.length).toBe(2)
+        expect(plugin.queuedRoutes.length).toBe(0)
+        expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(2)
+    })
+
+    test('discoverNewRoutes=true renderFirstRouteAlone=true', async() => {
+        const plugin = new PuppeteerPrerenderPlugin({
+            enabled: true,
+            routes: ['/'],
+            entryDir: '/dist',
+            renderFirstRouteAlone: true,
+            discoverNewRoutes: true,
+        })
+
+        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
+            const result: RenderResult = {
+                originalRoute: '',
+                route: '',
+                html: '<a href="/test">Link</a>',
+            }
+
+            return new Promise((resolve) => resolve(result))
+        })
+
+        await plugin.renderRoutes()
+
+        expect(plugin.processedRoutes.length).toBe(2)
+        expect(plugin.queuedRoutes.length).toBe(0)
+        expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(2)
+    })
+
+    test('discoverNewRoutes=true multiple routes', async() => {
+        const plugin = new PuppeteerPrerenderPlugin({
+            enabled: true,
+            routes: ['/'],
+            entryDir: '/dist',
+            discoverNewRoutes: true,
+        })
+
+        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
+            const result: RenderResult = {
+                originalRoute: '',
+                route: '',
+                html: `
+                    <a href="/">1</a>
+                    <a href="/test">2</a>
+                    <a href="/test">2</a>
+                    <a href="/foo">3</a>
+                    <a href="/bar">4</a>
+                `,
+            }
+
+            return new Promise((resolve) => resolve(result))
+        })
+
+        await plugin.renderRoutes()
+
+        expect(plugin.processedRoutes.length).toBe(4)
+        expect(plugin.queuedRoutes.length).toBe(0)
+        expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(4)
+    })
 })

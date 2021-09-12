@@ -50,6 +50,14 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return this._logger ?? console
     }
 
+    get processedRoutes(): Array<string> {
+        return [...this._processedRoutes]
+    }
+
+    get queuedRoutes(): Array<string> {
+        return [...this._queuedRoutes]
+    }
+
     async renderRoutes(): Promise<void> {
         if (!this._options.enabled) {
             this.logger.info('Skipping prerender because PuppeteerPrerenderPluginOptions.enabled is set to false')
@@ -68,25 +76,15 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         const browser = await puppeteer.launch(this._options.puppeteerOptions)
 
         // Separate home route ('/') from the rest if it exists so that it can be rendered last
-        const homeRoute = this.dequeueHomeRoute()
+        const homeRoutes = this.dequeueHomeRoutes()
 
         if (this._options.renderFirstRouteAlone) {
             await this.renderNextRoute(browser, server)
         }
 
-        while (this._queuedRoutes.length > 0) {
-            const totalRoutes = this._queuedRoutes.length
-            const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
-
-            await batchRequests(totalRoutes, maxConcurrent, async() => {
-                await this.renderNextRoute(browser, server)
-            })
-        }
-
-        homeRoute.forEach((route) => this._queuedRoutes.push(route))
-        await this.renderNextRoute(browser, server)
-
-        assert(this._queuedRoutes.length === 0)
+        await this.renderAllQueuedRoutes(browser, server)
+        homeRoutes.forEach((route) => this._queuedRoutes.push(route))
+        await this.renderAllQueuedRoutes(browser, server)
 
         this.logger.info(`Rendered ${this._processedRoutes.size} route(s)`)
         await browser.close()
@@ -121,13 +119,24 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return server
     }
 
-    dequeueHomeRoute(): Array<string> {
+    dequeueHomeRoutes(): Array<string> {
         const homeIdx = this._queuedRoutes.findIndex((route) => route === '/')
         if (homeIdx < 0) {
             return []
         }
 
         return this._queuedRoutes.splice(homeIdx, 1)
+    }
+
+    async renderAllQueuedRoutes(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
+        while (this._queuedRoutes.length > 0) {
+            const totalRoutes = this._queuedRoutes.length
+            const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
+
+            await batchRequests(totalRoutes, maxConcurrent, async() => {
+                await this.renderNextRoute(browser, server)
+            })
+        }
     }
 
     async renderNextRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
