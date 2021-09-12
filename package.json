@@ -15,7 +15,7 @@
     "private": false,
     "scripts": {
         "dev": "  cross-env NODE_ENV=development tsc --watch",
-        "build": "cross-env NODE_ENV=production  tsc",
+        "build": "cross-env NODE_ENV=production  tsc -p tsconfig.prod.json",
         "prepublishOnly": "rm -rf ./dist && yarn build",
         "lint": "eslint --ext '.ts' --ignore-path .gitignore .",
         "test": "jest"
