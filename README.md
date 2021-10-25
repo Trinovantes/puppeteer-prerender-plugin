@@ -54,8 +54,9 @@ export default {
         }),
         new PuppeteerPrerenderPlugin({
             enabled: process.env.NODE_ENV !== 'development',
-            renderAfterEvent: '__RENDERED__',
+            entryDir: 'dist',
             outputDir: 'dist',
+            renderAfterEvent: '__RENDERED__',
             postProcess: (result) => {
                 result.html = result.html
                     .replace(/<script (.*?)>/g, '<script $1 defer>')
