@@ -1,5 +1,7 @@
 # Puppeteer Prerender Plugin Changelog
 
+This document only contains breaking changes
+
 ## 3.0.0
 
 * Require `node >= 14`
