@@ -67,11 +67,11 @@ export class SpaServer implements PrerenderServer {
         if (typeof address === 'string') {
             return `http://${address}`
         } else if (typeof address === 'object' && address.family === 'IPv4') {
-            return `http://${address?.address}:${address?.port}`
+            return `http://${address.address}:${address.port}`
         } else if (typeof address === 'object' && address.family === 'IPv6') {
-            return `http://[${address?.address}]:${address?.port}`
+            return `http://[${address.address}]:${address.port}`
         } else {
-            throw new Error(`Unknown server address format: ${address.family}`)
+            throw new Error(`Unknown server address family: ${address.family}`)
         }
     }
 
