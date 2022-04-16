@@ -1,4 +1,5 @@
 import express from 'express'
+import proxy from 'express-http-proxy'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
@@ -8,6 +9,14 @@ import type { PrerenderServer } from './PrerenderServer'
 // SpaServer
 // ----------------------------------------------------------------------------
 
+export interface SpaServerOptions {
+    entryFile: string
+    staticDir: string
+    publicPath?: string
+    proxy?: Record<string, string>
+    handlers?: Record<string, express.RequestHandler>
+}
+
 export class SpaServer implements PrerenderServer {
     private _staticDir: string
     private _publicPath: string
@@ -16,28 +25,38 @@ export class SpaServer implements PrerenderServer {
     private _server: http.Server
     private _isReady: Promise<void>
 
-    constructor(staticDir: string, entryFile: string, publicPath = '/') {
-        this._staticDir = staticDir
-        this._publicPath = publicPath
+    constructor(options: SpaServerOptions) {
+        this._staticDir = options.staticDir
+        this._publicPath = options.publicPath ?? '/'
 
-        if (!fs.existsSync(staticDir)) {
-            throw new Error(`staticDir:"${staticDir}" does not exist`)
+        if (!fs.existsSync(this._staticDir)) {
+            throw new Error(`staticDir:"${this._staticDir}" does not exist`)
         }
 
-        const indexFile = path.join(staticDir, entryFile)
+        const indexFile = path.join(this._staticDir, options.entryFile)
         if (!fs.existsSync(indexFile)) {
-            throw new Error(`indexFile:"${indexFile}" does not exist`)
+            throw new Error(`entryFile:"${indexFile}" does not exist`)
         }
 
         // Create Express server
         this._app = express()
 
-        // Handle static files first (i.e. js, css, images)
-        this._app.use(this.publicPath, express.static(this.staticDir, {
+        // Handle static files first (e.g. js, css, images)
+        this._app.use(this._publicPath, express.static(this._staticDir, {
             dotfiles: 'allow',
         }))
 
-        // Redirect all requests to SPA in index.html
+        // Proxy reqests to different process/url
+        for (const [route, proxyDest] of Object.entries(options.proxy ?? {})) {
+            this._app.use(route, proxy(proxyDest))
+        }
+
+        // Handle custom routes in this process (e.g. API handlers)
+        for (const [route, handler] of Object.entries(options.handlers ?? {})) {
+            this._app.use(route, handler)
+        }
+
+        // Redirect all leftover requests to SPA in index.html
         this._app.use('*', (req, res) => {
             res.sendFile(indexFile)
         })
