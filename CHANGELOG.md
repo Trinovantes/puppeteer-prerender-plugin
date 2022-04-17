@@ -2,6 +2,10 @@
 
 This document only contains breaking changes
 
+## 3.0.8
+
+* Removed `VueSsgServer` (it was technically an internal module so nobody should be using it anyways)
+
 ## 3.0.0
 
 * Require `node >= 14`
