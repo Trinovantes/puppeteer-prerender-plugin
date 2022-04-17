@@ -33,9 +33,9 @@ export class SpaServer implements PrerenderServer {
             throw new Error(`staticDir:"${this._staticDir}" does not exist`)
         }
 
-        const indexFile = path.join(this._staticDir, options.entryFile)
-        if (!fs.existsSync(indexFile)) {
-            throw new Error(`entryFile:"${indexFile}" does not exist`)
+        const entryFile = path.join(this._staticDir, options.entryFile)
+        if (!fs.existsSync(entryFile)) {
+            throw new Error(`entryFile:"${entryFile}" does not exist`)
         }
 
         // Create Express server
@@ -58,7 +58,7 @@ export class SpaServer implements PrerenderServer {
 
         // Redirect all leftover requests to SPA in index.html
         this._app.use('*', (req, res) => {
-            res.sendFile(indexFile)
+            res.sendFile(entryFile)
         })
 
         this._server = http.createServer(this._app)
