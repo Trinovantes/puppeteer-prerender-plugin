@@ -41,7 +41,12 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     apply(compiler: Compiler): void {
         this._logger = compiler.getInfrastructureLogger(PLUGIN_NAME)
 
-        compiler.hooks.done.tapPromise(PLUGIN_NAME, async() => {
+        compiler.hooks.done.tapPromise(PLUGIN_NAME, async(stats) => {
+            if (stats.compilation.needAdditionalPass) {
+                this._logger?.info('Skipping prerender because compilation needs an additional pass')
+                return
+            }
+
             await this.renderRoutes()
         })
     }
