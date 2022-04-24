@@ -41,7 +41,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     apply(compiler: Compiler): void {
         this._logger = compiler.getInfrastructureLogger(PLUGIN_NAME)
 
-        compiler.hooks.afterEmit.tapPromise(PLUGIN_NAME, async() => {
+        compiler.hooks.done.tapPromise(PLUGIN_NAME, async() => {
             await this.renderRoutes()
         })
     }
