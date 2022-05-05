@@ -3,10 +3,14 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path')
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const INLINE_ELEMENTS = require('eslint-plugin-vue/lib/utils/inline-non-void-elements.json')
+
 module.exports = {
     root: true,
 
     parserOptions: {
+        extraFileExtensions: ['.vue'],
         parser: '@typescript-eslint/parser',
         project: path.resolve(__dirname, './tsconfig.json'),
         tsconfigRootDir: __dirname,
@@ -30,11 +34,21 @@ module.exports = {
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
+        'plugin:vue/vue3-recommended',
     ],
 
     plugins: [
         '@typescript-eslint',
+        'vue',
     ],
+
+    settings: {
+        'import/resolver': {
+            'typescript': {
+                'alwaysTryTypes': true,
+            },
+        },
+    },
 
     rules: {
         'generator-star-spacing': ['error', 'before'],
@@ -60,6 +74,20 @@ module.exports = {
         'space-before-function-paren': ['error', 'never'],
         'indent': ['error', 4, {
             'SwitchCase': 1,
+        }],
+
+        'vue/html-indent': ['error', 4],
+        'vue/max-attributes-per-line': ['error', {
+            singleline: 999,
+            multiline: 1,
+        }],
+
+        'vue/singleline-html-element-content-newline': ['error', {
+            'ignores': ['ExternalLink', 'pre', 'router-link', ...INLINE_ELEMENTS],
+        }],
+
+        'vue/component-tags-order': ['error', {
+            'order': ['script', 'template', 'style'],
         }],
 
         '@typescript-eslint/type-annotation-spacing': 'error',
@@ -124,6 +152,10 @@ module.exports = {
                     'variableLike',
                     'method',
                 ],
+                'filter': {
+                    'regex': '^update:',
+                    'match': false,
+                },
                 'format': ['strictCamelCase', 'UPPER_CASE'],
             },
         ],
