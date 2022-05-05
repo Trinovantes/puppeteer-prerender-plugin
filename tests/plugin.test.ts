@@ -1,6 +1,6 @@
-import { PuppeteerPrerenderPlugin } from '@/PuppeteerPrerenderPlugin'
-import type { RenderResult } from '@/PuppeteerPrerenderPluginOptions'
-import type { PrerenderServer } from '@/servers/PrerenderServer'
+import { PuppeteerPrerenderPlugin } from 'src/PuppeteerPrerenderPlugin'
+import type { RenderResult } from 'src/PuppeteerPrerenderPluginOptions'
+import type { PrerenderServer } from 'src/servers/PrerenderServer'
 import fs from 'fs/promises'
 
 let mkdirSpy: jest.SpyInstance

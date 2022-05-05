@@ -35,7 +35,7 @@
                     "paths": [
                         {
                             "rootPathSuffix": "./src/",
-                            "rootPathPrefix": "@/"
+                            "rootPathPrefix": "src"
                         }
                     ]
                 }
