@@ -1,14 +1,14 @@
-import type { Compiler, WebpackPluginInstance } from 'webpack'
-import type { PrerenderServer } from './servers/PrerenderServer'
-import puppeteer from 'puppeteer'
-import path from 'path'
 import assert from 'assert'
 import fs from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
-import { batchRequests } from './utils/batchRequests'
+import path from 'path'
+import puppeteer from 'puppeteer'
 import { isValidOptions, PuppeteerPrerenderPluginOptions, RenderResult } from './PuppeteerPrerenderPluginOptions'
 import { SpaServer } from './servers/SpaServer'
+import { batchRequests } from './utils/batchRequests'
 import { findRoutesInPage } from './utils/findRoutesInPage'
+import type { PrerenderServer } from './servers/PrerenderServer'
+import type { Compiler, WebpackPluginInstance } from 'webpack'
 
 type WebpackLogger = ReturnType<Compiler['getInfrastructureLogger']>
 

@@ -1,8 +1,8 @@
-import express from 'express'
-import proxy from 'express-http-proxy'
+import fs from 'fs'
 import http from 'http'
 import path from 'path'
-import fs from 'fs'
+import express from 'express'
+import proxy from 'express-http-proxy'
 import type { PrerenderServer } from './PrerenderServer'
 
 // ----------------------------------------------------------------------------
