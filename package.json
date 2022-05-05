@@ -17,7 +17,7 @@
         "dev": "  cross-env NODE_ENV=development tsc --watch",
         "build": "cross-env NODE_ENV=production  tsc -p tsconfig.prod.json",
         "prepublishOnly": "rm -rf ./dist && yarn build",
-        "lint": "eslint --ext '.ts' --ignore-path .gitignore .",
+        "lint": "tsc --noemit && eslint --ext '.ts' --ignore-path .gitignore .",
         "test": "jest"
     },
     "babel": {
