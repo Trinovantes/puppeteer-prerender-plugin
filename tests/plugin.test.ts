@@ -51,12 +51,15 @@ describe('PuppeteerPrerenderPlugin', () => {
             routes: ['/'],
             entryDir: '/dist',
         })
+
         await plugin.renderRoutes()
 
         expect(initServerSpy).toBeCalled()
         expect(mkdirSpy).toBeCalledWith('/dist', { recursive: true })
         expect(writeFileSpy).toBeCalledWith('/dist/index.html', '')
 
+        expect(plugin.queuedRoutes.length).toBe(0)
+        expect(plugin.processedRoutes.length).toBe(1)
         expect(renderRouteWithPuppeteerSpy).toBeCalled()
     })
 
@@ -75,12 +78,15 @@ describe('PuppeteerPrerenderPlugin', () => {
                 routes,
                 entryDir: '/dist',
             })
+
             await plugin.renderRoutes()
 
             expect(initServerSpy).toBeCalled()
             expect(mkdirSpy).toBeCalledTimes(3)
             expect(writeFileSpy).toBeCalledTimes(3)
 
+            expect(plugin.queuedRoutes.length).toBe(0)
+            expect(plugin.processedRoutes.length).toBe(3)
             expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(3)
             expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(1, expect.anything(), '/pricing')
             expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(2, expect.anything(), '/faq')
@@ -93,8 +99,8 @@ describe('PuppeteerPrerenderPlugin', () => {
             enabled: true,
             routes: ['/'],
             entryDir: '/dist',
-            renderFirstRouteAlone: false,
             discoverNewRoutes: true,
+            renderFirstRouteAlone: false,
         })
 
         renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
@@ -109,35 +115,39 @@ describe('PuppeteerPrerenderPlugin', () => {
 
         await plugin.renderRoutes()
 
-        expect(plugin.processedRoutes.length).toBe(2)
         expect(plugin.queuedRoutes.length).toBe(0)
+        expect(plugin.processedRoutes.length).toBe(2)
         expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(2)
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(1, expect.anything(), '/')
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(2, expect.anything(), '/test')
     })
 
     test('discoverNewRoutes=true renderFirstRouteAlone=true', async() => {
+        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
+            const result: RenderResult = {
+                originalRoute: '',
+                route: '',
+                html: '<a href="/test">Link</a>',
+            }
+
+            return new Promise((resolve) => resolve(result))
+        })
+
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
             routes: ['/'],
             entryDir: '/dist',
-            renderFirstRouteAlone: true,
             discoverNewRoutes: true,
-        })
-
-        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
-            const result: RenderResult = {
-                originalRoute: '',
-                route: '',
-                html: '<a href="/test">Link</a>',
-            }
-
-            return new Promise((resolve) => resolve(result))
+            renderFirstRouteAlone: true,
         })
 
         await plugin.renderRoutes()
 
-        expect(plugin.processedRoutes.length).toBe(2)
         expect(plugin.queuedRoutes.length).toBe(0)
+        expect(plugin.processedRoutes.length).toBe(2)
         expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(2)
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(1, expect.anything(), '/')
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(2, expect.anything(), '/test')
     })
 
     test('discoverNewRoutes=true multiple routes', async() => {
@@ -166,8 +176,12 @@ describe('PuppeteerPrerenderPlugin', () => {
 
         await plugin.renderRoutes()
 
-        expect(plugin.processedRoutes.length).toBe(4)
         expect(plugin.queuedRoutes.length).toBe(0)
+        expect(plugin.processedRoutes.length).toBe(4)
         expect(renderRouteWithPuppeteerSpy).toBeCalledTimes(4)
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(1, expect.anything(), '/')
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(2, expect.anything(), '/test')
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(3, expect.anything(), '/foo')
+        expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(4, expect.anything(), '/bar')
     })
 })
