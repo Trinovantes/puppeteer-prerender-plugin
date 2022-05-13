@@ -20,7 +20,7 @@ module.exports = {
 
     // Predefines global variables (e.g. browser env predefines 'window' variable)
     env: {
-        browser: false,
+        browser: true,
         node: true,
         'vue/setup-compiler-macros': true,
     },
