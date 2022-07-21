@@ -1,4 +1,4 @@
-import { isValidOptions, PuppeteerPrerenderPluginOptions } from 'src/PuppeteerPrerenderPluginOptions'
+import { isValidOptions, PuppeteerPrerenderPluginOptions } from '@/PuppeteerPrerenderPluginOptions'
 
 describe('PuppeteerPrerenderPluginOptions', () => {
     test('smoke', () => {
