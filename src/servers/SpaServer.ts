@@ -9,7 +9,7 @@ import type { PrerenderServer } from './PrerenderServer'
 // SpaServer
 // ----------------------------------------------------------------------------
 
-export interface SpaServerOptions {
+export type SpaServerOptions = {
     entryFile: string
     staticDir: string
     publicPath?: string

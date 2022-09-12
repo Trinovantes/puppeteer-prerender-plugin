@@ -1,18 +1,18 @@
 import Ajv from 'ajv'
 import type puppeteer from 'puppeteer'
 
-export interface PageInjection {
+export type PageInjection = {
     key: string
     value: unknown
 }
 
-export interface RenderResult {
+export type RenderResult = {
     originalRoute: string
     route: string
     html: string
 }
 
-export interface PuppeteerPrerenderPluginOptions {
+export type PuppeteerPrerenderPluginOptions = {
     routes: Array<string>
     entryDir: string
     entryFile?: string
