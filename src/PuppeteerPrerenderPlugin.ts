@@ -2,7 +2,7 @@ import assert from 'assert'
 import fs from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
-import puppeteer from 'puppeteer'
+import { launch, Browser } from 'puppeteer'
 import { isValidOptions, PuppeteerPrerenderPluginOptions, RenderResult } from './PuppeteerPrerenderPluginOptions'
 import { SpaServer } from './servers/SpaServer'
 import { batchRequests } from './utils/batchRequests'
@@ -78,7 +78,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         const server = await this.initServer()
 
         this.logger.info('Initializing Puppeteer')
-        const browser = await puppeteer.launch(this._options.puppeteerOptions)
+        const browser = await launch(this._options.puppeteerOptions)
 
         // Separate home route ('/') from the rest if it exists so that it can be rendered last
         const homeRoutes = this.dequeueHomeRoutes()
@@ -137,7 +137,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         return this._queuedRoutes.splice(homeIdx, 1)
     }
 
-    async renderAllQueuedRoutes(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
+    async renderAllQueuedRoutes(browser: Browser, server: PrerenderServer): Promise<void> {
         while (this._queuedRoutes.length > 0) {
             const totalRoutes = this._queuedRoutes.length
             const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
@@ -148,7 +148,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         }
     }
 
-    async renderNextRoute(browser: puppeteer.Browser, server: PrerenderServer): Promise<void> {
+    async renderNextRoute(browser: Browser, server: PrerenderServer): Promise<void> {
         const currentRoute = this._queuedRoutes.shift()
         if (!currentRoute) {
             return
@@ -178,7 +178,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         }
     }
 
-    async renderRouteWithPuppeteer(browser: puppeteer.Browser, route: string): Promise<RenderResult> {
+    async renderRouteWithPuppeteer(browser: Browser, route: string): Promise<RenderResult> {
         this.logger.info('Rendering', route)
         const page = await browser.newPage()
         await page.setJavaScriptEnabled(this._options.enablePageJs ?? true)
