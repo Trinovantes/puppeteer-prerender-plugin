@@ -1,6 +1,5 @@
 import fs from 'fs'
 import http from 'http'
-import path from 'path'
 import express from 'express'
 import proxy from 'express-http-proxy'
 import type { PrerenderServer } from './PrerenderServer'
@@ -10,15 +9,37 @@ import type { PrerenderServer } from './PrerenderServer'
 // ----------------------------------------------------------------------------
 
 export type SpaServerOptions = {
-    entryFile: string
-    staticDir: string
+    /**
+     * Full path to entry file
+     * e.g. /app/dist/index.html
+     */
+    entryFilePath: string
+
+    /**
+     * Full path to public assets directory
+     * e.g. /app/dist/public
+     */
+    publicDir: string
+
+    /**
+     * Url path to public assets
+     * e.g. /public/
+     */
     publicPath?: string
+
+    /**
+     * Proxy requests to different process/url
+     */
     proxy?: Record<string, string>
+
+    /**
+     * Additional custom handlers
+     */
     handlers?: Record<string, express.RequestHandler>
 }
 
 export class SpaServer implements PrerenderServer {
-    private _staticDir: string
+    private _publicDir: string
     private _publicPath: string
 
     private _app: express.Express
@@ -26,23 +47,22 @@ export class SpaServer implements PrerenderServer {
     private _isReady: Promise<void>
 
     constructor(options: SpaServerOptions) {
-        this._staticDir = options.staticDir
+        this._publicDir = options.publicDir
         this._publicPath = options.publicPath ?? '/'
 
-        if (!fs.existsSync(this._staticDir)) {
-            throw new Error(`staticDir:"${this._staticDir}" does not exist`)
+        if (!fs.existsSync(this._publicDir)) {
+            throw new Error(`staticDir:"${this._publicDir}" does not exist`)
         }
 
-        const entryFile = path.join(this._staticDir, options.entryFile)
-        if (!fs.existsSync(entryFile)) {
-            throw new Error(`entryFile:"${entryFile}" does not exist`)
+        if (!fs.existsSync(options.entryFilePath)) {
+            throw new Error(`entryFile:"${options.entryFilePath}" does not exist`)
         }
 
         // Create Express server
         this._app = express()
 
         // Handle static files first (e.g. js, css, images)
-        this._app.use(this._publicPath, express.static(this._staticDir, {
+        this._app.use(this._publicPath, express.static(this._publicDir, {
             dotfiles: 'allow',
         }))
 
@@ -58,7 +78,7 @@ export class SpaServer implements PrerenderServer {
 
         // Redirect all leftover requests to SPA in index.html
         this._app.use('*', (req, res) => {
-            res.sendFile(entryFile)
+            res.sendFile(options.entryFilePath)
         })
 
         this._server = http.createServer(this._app)
@@ -94,8 +114,8 @@ export class SpaServer implements PrerenderServer {
         }
     }
 
-    get staticDir(): string {
-        return this._staticDir
+    get publicDir(): string {
+        return this._publicDir
     }
 
     get publicPath(): string {

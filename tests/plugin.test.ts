@@ -19,7 +19,7 @@ beforeEach(() => {
             isServerReady: () => new Promise<void>((resolve) => resolve()),
             baseUrl: '',
             publicPath: '',
-            staticDir: '',
+            publicDir: '',
         }
 
         return new Promise((resolve) => resolve(server))

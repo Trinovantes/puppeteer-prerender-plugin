@@ -2,6 +2,12 @@
 
 This document only contains breaking changes
 
+## 3.0.12
+
+* Renamed options in `SpaServerOptions` (this is an internal module that nobody should be using but is still exported)
+    * `entryFile` renamed to `entryFilePath` (need to be full path instead of just file name)
+    * `staticDir` renamed to `publicDir`
+
 ## 3.0.8
 
 * Removed `VueSsgServer` (it was technically an internal module so nobody should be using it anyways)

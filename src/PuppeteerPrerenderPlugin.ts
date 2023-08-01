@@ -74,11 +74,8 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
             return
         }
 
-        this.logger.info('Initializing PrerenderServer')
         const server = await this.initServer()
-
-        this.logger.info('Initializing Puppeteer')
-        const browser = await launch(this._options.puppeteerOptions)
+        const browser = await this.initPuppeteer()
 
         // Separate home route ('/') from the rest if it exists so that it can be rendered last
         const homeRoutes = this.dequeueHomeRoutes()
@@ -101,31 +98,36 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
 
     async initServer(): Promise<PrerenderServer> {
         const entryFile = this._options.entryFile ?? 'index.html'
-        this.logger.info('Initializing PrerenderServer', entryFile)
+        const entryFilePath = path.join(this._options.entryDir, entryFile)
+        if (!fs.existsSync(entryFilePath)) {
+            throw new Error(`entryFile:${entryFilePath} does not exist`)
+        }
+
+        this.logger.info('Initializing PrerenderServer', entryFilePath)
 
         let server: PrerenderServer
         if (entryFile.endsWith('.html')) {
             server = new SpaServer({
-                entryFile,
-                staticDir: this._options.entryDir,
+                entryFilePath,
+                publicDir: this._options.entryDir,
                 publicPath: this._options.publicPath,
             })
         } else if (entryFile.endsWith('.js')) {
-            const entryPath = path.resolve(this._options.entryDir, entryFile)
-            if (!fs.existsSync(entryPath)) {
-                throw new Error(`entryFile:${entryPath} does not exist`)
-            }
-
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            server = (require(entryPath) as { default: PrerenderServer }).default
+            server = (require(entryFilePath) as { default: PrerenderServer }).default
         } else {
             throw new Error('Unrecognized entryFile type')
         }
 
-        this.logger.info(`Serving static content from ${server.staticDir} to ${server.publicPath}`)
+        this.logger.info(`Serving static content from ${server.publicDir} to ${server.publicPath}`)
         await server.isServerReady()
 
         return server
+    }
+
+    async initPuppeteer(): Promise<Browser> {
+        this.logger.info('Initializing Puppeteer', this._options.puppeteerOptions)
+        return await launch(this._options.puppeteerOptions)
     }
 
     dequeueHomeRoutes(): Array<string> {
