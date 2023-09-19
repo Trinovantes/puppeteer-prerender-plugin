@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-FROM node:14
+FROM node:20
 LABEL org.opencontainers.image.source https://github.com/Trinovantes/puppeteer-prerender-plugin
 # -----------------------------------------------------------------------------
 
