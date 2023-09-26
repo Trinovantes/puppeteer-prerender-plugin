@@ -69,7 +69,7 @@ export default {
             ],
             puppeteerOptions: {
                 // Needed to run inside Docker
-                headless: true,
+                headless: 'new',
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',

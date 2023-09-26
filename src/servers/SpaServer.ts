@@ -1,8 +1,8 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import http from 'http'
 import express from 'express'
 import proxy from 'express-http-proxy'
-import type { PrerenderServer } from './PrerenderServer'
+import { PrerenderServer } from './PrerenderServer'
 
 // ----------------------------------------------------------------------------
 // SpaServer

@@ -1,4 +1,5 @@
-import { isValidOptions, PuppeteerPrerenderPluginOptions } from '@/PuppeteerPrerenderPluginOptions'
+import { validateOptions, PuppeteerPrerenderPluginOptions } from '@/PuppeteerPrerenderPluginOptions'
+import { describe, test, expect } from 'vitest'
 
 describe('PuppeteerPrerenderPluginOptions', () => {
     test('smoke', () => {
@@ -6,7 +7,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
     })
 
     test('missing required options should throw', () => {
-        expect(() => isValidOptions({})).toThrow()
+        expect(() => validateOptions({})).toThrow()
     })
 
     test('minimal options', () => {
@@ -15,7 +16,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             entryDir: '',
         }
 
-        expect(isValidOptions(options)).toBe(true)
+        expect(validateOptions(options)).toBe(true)
     })
 
     test('non-string routes (number) should throw', () => {
@@ -24,16 +25,16 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             entryDir: '',
         }
 
-        expect(() => isValidOptions(options)).toThrow()
+        expect(() => validateOptions(options)).toThrow()
     })
 
     test('non-string routes (promises) should throw', () => {
         const options = {
-            routes: [new Promise<string>((resolve) => resolve('/'))],
+            routes: [new Promise<string>((resolve) => { resolve('/') })],
             entryDir: '',
         }
 
-        expect(() => isValidOptions(options)).toThrow()
+        expect(() => validateOptions(options)).toThrow()
     })
 
     test('injections', () => {
@@ -70,7 +71,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             ],
         }
 
-        expect(isValidOptions(options)).toBe(true)
+        expect(validateOptions(options)).toBe(true)
     })
 
     test('only renderAfterEvent', () => {
@@ -80,7 +81,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             renderAfterEvent: '__RENDERED__',
         }
 
-        expect(isValidOptions(options)).toBe(true)
+        expect(validateOptions(options)).toBe(true)
     })
 
     test('only renderAfterTime', () => {
@@ -90,7 +91,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             renderAfterTime: 5000,
         }
 
-        expect(isValidOptions(options)).toBe(true)
+        expect(validateOptions(options)).toBe(true)
     })
 
     test('both renderAfterEvent and renderAfterTime should throw', () => {
@@ -101,6 +102,6 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             renderAfterTime: 5000,
         }
 
-        expect(() => isValidOptions(options)).toThrow()
+        expect(() => validateOptions(options)).toThrow()
     })
 })

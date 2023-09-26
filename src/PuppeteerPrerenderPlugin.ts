@@ -1,14 +1,13 @@
-import assert from 'assert'
-import fs from 'fs'
-import { mkdir, writeFile } from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs'
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { launch, Browser } from 'puppeteer'
-import { isValidOptions, PuppeteerPrerenderPluginOptions, RenderResult } from './PuppeteerPrerenderPluginOptions'
+import { validateOptions, PuppeteerPrerenderPluginOptions, RenderResult } from './PuppeteerPrerenderPluginOptions'
 import { SpaServer } from './servers/SpaServer'
 import { batchRequests } from './utils/batchRequests'
 import { findRoutesInPage } from './utils/findRoutesInPage'
-import type { PrerenderServer } from './servers/PrerenderServer'
-import type { Compiler, WebpackPluginInstance } from 'webpack'
+import { PrerenderServer } from './servers/PrerenderServer'
+import { Compiler, WebpackPluginInstance } from 'webpack'
 
 type WebpackLogger = ReturnType<Compiler['getInfrastructureLogger']>
 
@@ -31,7 +30,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     private _queuedRoutes: Array<string>
 
     constructor(options: PuppeteerPrerenderPluginOptions) {
-        assert(isValidOptions(options))
+        validateOptions(options)
         this._options = options
 
         this._processedRoutes = new Set()
@@ -127,7 +126,10 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
 
     async initPuppeteer(): Promise<Browser> {
         this.logger.info('Initializing Puppeteer', this._options.puppeteerOptions)
-        return await launch(this._options.puppeteerOptions)
+        return await launch({
+            headless: 'new',
+            ...this._options.puppeteerOptions,
+        })
     }
 
     dequeueHomeRoutes(): Array<string> {
@@ -191,10 +193,8 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         })
 
         // Inject data into the page context
-        {
-            const injections = (this._options.injections ?? []).map((injection) => {
-                return `window['${injection.key}'] = ${JSON.stringify(injection.value)}`
-            })
+        if (this._options.injections) {
+            const injections = this._options.injections.map(({ key, value }) => `window['${key}'] = ${JSON.stringify(value)}`)
             const script = `() => {
                 ${injections.join(';')}
             }`
@@ -203,10 +203,11 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         }
 
         // Add the event listener before we navigate to the route so that we don't miss the event
-        {
+        if (this._options.renderAfterEvent) {
+            const eventName = this._options.renderAfterEvent ?? '__RENDERED__'
+
             // If no event is specified, then this promise will never resolve
             // However we still want this Promise object in the window scope so that our apps can detect when it's being prerendered
-            const eventName = this._options.renderAfterEvent ?? 'Undefined Event for renderAfterEvent'
             const script = `() => {
                 window['${PRERENDER_READY_EVENT_LISTENER}'] = new Promise((resolve) => {
                     document.addEventListener('${eventName}', () => {
@@ -222,7 +223,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
         await page.goto(route, { waitUntil: 'networkidle0' })
 
         // Wait until route is ready
-        let isReadyScript = '() => {}'
+        let isReadyScript: string
         if (this._options.renderAfterEvent !== undefined) {
             isReadyScript = `() => {
                 return window['${PRERENDER_READY_EVENT_LISTENER}']
@@ -233,6 +234,8 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
                     setTimeout(resolve, ${this._options.renderAfterTime})
                 })
             }`
+        } else {
+            isReadyScript = '() => {}'
         }
         await page.evaluate(`(${isReadyScript})()`)
 

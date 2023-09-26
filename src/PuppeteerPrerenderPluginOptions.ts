@@ -1,146 +1,69 @@
-import Ajv from 'ajv'
-import type puppeteer from 'puppeteer'
+import { Type, Static } from '@sinclair/typebox'
+import { Value } from '@sinclair/typebox/value'
+import puppeteer from 'puppeteer'
 
-export type PageInjection = {
-    key: string
-    value: unknown
-}
-
-export type RenderResult = {
-    originalRoute: string
-    route: string
-    html: string
-}
-
-export type PuppeteerPrerenderPluginOptions = {
-    routes: Array<string>
-    entryDir: string
-    entryFile?: string
-    publicPath?: string
-    outputDir?: string
-
-    enabled?: boolean
-    keepAlive?: boolean
-    enablePageJs?: boolean
-    maxConcurrent?: number
-    discoverNewRoutes?: boolean
-    renderFirstRouteAlone?: boolean
-    injections?: Array<PageInjection>
-    renderAfterEvent?: string
-    renderAfterTime?: number
-
-    postProcess?: (result: RenderResult) => void | Promise<void>
-    puppeteerOptions?: Parameters<typeof puppeteer.launch>[0]
-}
-
-/* eslint-disable quote-props */
-const baseProperties = {
-    'routes': {
-        type: 'array',
-        items: {
-            type: 'string',
-        },
-    },
-    'entryDir': {
-        type: 'string',
-    },
-    'entryFile': {
-        type: 'string',
-    },
-    'publicPath': {
-        type: 'string',
-    },
-    'outputDir': {
-        type: 'string',
-    },
-    'enabled': {
-        type: 'boolean',
-    },
-    'keepAlive': {
-        type: 'boolean',
-    },
-    'enablePageJs': {
-        type: 'boolean',
-    },
-    'maxConcurrent': {
-        type: 'integer',
-        minimum: 1,
-    },
-    'discoverNewRoutes': {
-        type: 'boolean',
-    },
-    'renderFirstRouteAlone': {
-        type: 'boolean',
-    },
-    'injections': {
-        type: 'array',
-        items: {
-            type: 'object',
-            properties: {
-                'key': {
-                    type: 'string',
-                },
-                'value': {
-                    anyOf: [
-                        { type: 'number' },
-                        { type: 'string' },
-                        { type: 'boolean' },
-                        { type: 'array' },
-                        { type: 'object' },
-                    ],
-                },
-            },
-            additionalProperties: false,
-        },
-    },
-    'postProcess': {},
-    'puppeteerOptions': {
-        type: 'object',
-    },
-}
-
-const baseSchema = {
-    type: 'object',
-    required: ['routes', 'entryDir'],
+const tbPageInjection = Type.Object({
+    key: Type.String(),
+    value: Type.Unknown(),
+}, {
     additionalProperties: false,
-}
-
-const ajv = new Ajv()
-const validator = ajv.compile({
-    type: 'object',
-    anyOf: [
-        {
-            ...baseSchema,
-            properties: baseProperties,
-        },
-        {
-            ...baseSchema,
-            properties: {
-                ...baseProperties,
-                'renderAfterEvent': {
-                    type: 'string',
-                },
-            },
-        },
-        {
-            ...baseSchema,
-            properties: {
-                ...baseProperties,
-                'renderAfterTime': {
-                    type: 'integer',
-                    minimum: 0,
-                },
-            },
-        },
-    ],
 })
 
-export function isValidOptions(options: unknown): options is PuppeteerPrerenderPluginOptions {
-    const isValid = validator(options)
-    if (!isValid) {
-        console.warn('Invalid PuppeteerPrerenderPluginOptions', validator.errors)
+const tbRenderResult = Type.Object({
+    originalRoute: Type.String(),
+    route: Type.String(),
+    html: Type.String(),
+}, {
+    additionalProperties: false,
+})
+
+const tbPuppeteerPrerenderPluginOptions = Type.Object({
+    routes: Type.Array(Type.String()),
+    entryDir: Type.String(),
+    entryFile: Type.Optional(Type.String()),
+    publicPath: Type.Optional(Type.String()),
+    outputDir: Type.Optional(Type.String()),
+
+    enabled: Type.Optional(Type.Boolean()),
+    keepAlive: Type.Optional(Type.Boolean()),
+    enablePageJs: Type.Optional(Type.Boolean()),
+    maxConcurrent: Type.Optional(Type.Number({ minimum: 1 })),
+    discoverNewRoutes: Type.Optional(Type.Boolean()),
+    renderFirstRouteAlone: Type.Optional(Type.Boolean()),
+    injections: Type.Optional(Type.Array(tbPageInjection)),
+
+    renderAfterEvent: Type.Optional(Type.String()),
+    renderAfterTime: Type.Optional(Type.Number({ minimum: 0 })),
+
+    postProcess: Type.Optional(
+        Type.Function([
+            tbRenderResult,
+        ], Type.Union([
+            Type.Void(),
+            Type.Promise(Type.Void()),
+        ])),
+    ),
+    puppeteerOptions: Type.Optional(Type.Unsafe<Parameters<typeof puppeteer.launch>[0]>()),
+}, {
+    additionalProperties: false,
+})
+
+export type PageInjection = Static<typeof tbPageInjection>
+
+export type RenderResult = Static<typeof tbRenderResult>
+
+export type PuppeteerPrerenderPluginOptions = Static<typeof tbPuppeteerPrerenderPluginOptions>
+
+export function validateOptions(options: unknown): options is PuppeteerPrerenderPluginOptions {
+    if (!Value.Check(tbPuppeteerPrerenderPluginOptions, options)) {
         throw new Error('Invalid PuppeteerPrerenderPluginOptions')
     }
 
-    return isValid
+    // It's probably possible to encode this logic into typebox but it would make the schema too complicated
+    // Thus it's simplier to just check here
+    if (options.renderAfterEvent !== undefined && options.renderAfterTime !== undefined) {
+        throw new Error('Canont set both renderAfterEvent and renderAfterTime')
+    }
+
+    return true
 }

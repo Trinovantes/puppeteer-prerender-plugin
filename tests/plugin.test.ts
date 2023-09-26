@@ -1,50 +1,44 @@
-import fs from 'fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { PuppeteerPrerenderPlugin } from '@/PuppeteerPrerenderPlugin'
-import type { RenderResult } from '@/PuppeteerPrerenderPluginOptions'
-import type { PrerenderServer } from '@/servers/PrerenderServer'
+import { RenderResult } from '@/PuppeteerPrerenderPluginOptions'
+import { PrerenderServer } from '@/servers/PrerenderServer'
+import { describe, test, expect, vi, SpyInstance, beforeEach } from 'vitest'
 
-let mkdirSpy: jest.SpyInstance
-let writeFileSpy: jest.SpyInstance
-let initServerSpy: jest.SpyInstance
-let renderRouteWithPuppeteerSpy: jest.SpyInstance
+let initServerSpy: SpyInstance
+let renderRouteWithPuppeteerSpy: SpyInstance
 
-beforeEach(() => {
-    mkdirSpy = jest.spyOn(fs, 'mkdir').mockImplementation()
-    writeFileSpy = jest.spyOn(fs, 'writeFile').mockImplementation()
-
-    initServerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'initServer').mockImplementation(() => {
-        const server: PrerenderServer = {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            destroy: () => {},
-            isServerReady: () => new Promise<void>((resolve) => resolve()),
-            baseUrl: '',
-            publicPath: '',
-            publicDir: '',
-        }
-
-        return new Promise((resolve) => resolve(server))
-    })
-
-    renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
-        const result: RenderResult = {
-            originalRoute: '',
-            route: '',
-            html: '',
-        }
-
-        return new Promise((resolve) => resolve(result))
-    })
+vi.mock('node:fs/promises', () => {
+    return {
+        mkdir: vi.fn(),
+        writeFile: vi.fn(),
+    }
 })
 
-afterEach(() => {
-    jest.restoreAllMocks()
+beforeEach(() => {
+    initServerSpy = vi.spyOn(PuppeteerPrerenderPlugin.prototype, 'initServer').mockImplementation(() => {
+        return new Promise<PrerenderServer>((resolve) => {
+            resolve({
+                destroy: () => {},
+                isServerReady: () => new Promise<void>((resolve) => { resolve() }),
+                baseUrl: '',
+                publicPath: '',
+                publicDir: '',
+            })
+        })
+    })
+
+    renderRouteWithPuppeteerSpy = vi.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
+        return new Promise<RenderResult>((resolve) => {
+            resolve({
+                originalRoute: '',
+                route: '',
+                html: '',
+            })
+        })
+    })
 })
 
 describe('PuppeteerPrerenderPlugin', () => {
-    test('smoke', () => {
-        expect(true).toBe(true)
-    })
-
     test('single route', async() => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
@@ -55,8 +49,8 @@ describe('PuppeteerPrerenderPlugin', () => {
         await plugin.renderRoutes()
 
         expect(initServerSpy).toBeCalled()
-        expect(mkdirSpy).toBeCalledWith('/dist', { recursive: true })
-        expect(writeFileSpy).toBeCalledWith('/dist/index.html', '')
+        expect(mkdir).toBeCalledWith('/dist', { recursive: true })
+        expect(writeFile).toBeCalledWith('/dist/index.html', '')
 
         expect(plugin.queuedRoutes.length).toBe(0)
         expect(plugin.processedRoutes.length).toBe(1)
@@ -82,8 +76,8 @@ describe('PuppeteerPrerenderPlugin', () => {
             await plugin.renderRoutes()
 
             expect(initServerSpy).toBeCalled()
-            expect(mkdirSpy).toBeCalledTimes(3)
-            expect(writeFileSpy).toBeCalledTimes(3)
+            expect(mkdir).toBeCalledTimes(3)
+            expect(writeFile).toBeCalledTimes(3)
 
             expect(plugin.queuedRoutes.length).toBe(0)
             expect(plugin.processedRoutes.length).toBe(3)
@@ -103,14 +97,14 @@ describe('PuppeteerPrerenderPlugin', () => {
             renderFirstRouteAlone: false,
         })
 
-        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
-            const result: RenderResult = {
-                originalRoute: '',
-                route: '',
-                html: '<a href="/test">Link</a>',
-            }
-
-            return new Promise((resolve) => resolve(result))
+        renderRouteWithPuppeteerSpy.mockImplementation(() => {
+            return new Promise<RenderResult>((resolve) => {
+                resolve({
+                    originalRoute: '',
+                    route: '',
+                    html: '<a href="/test">Link</a>',
+                })
+            })
         })
 
         await plugin.renderRoutes()
@@ -123,14 +117,14 @@ describe('PuppeteerPrerenderPlugin', () => {
     })
 
     test('discoverNewRoutes=true renderFirstRouteAlone=true', async() => {
-        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
-            const result: RenderResult = {
-                originalRoute: '',
-                route: '',
-                html: '<a href="/test">Link</a>',
-            }
-
-            return new Promise((resolve) => resolve(result))
+        renderRouteWithPuppeteerSpy.mockImplementation(() => {
+            return new Promise<RenderResult>((resolve) => {
+                resolve({
+                    originalRoute: '',
+                    route: '',
+                    html: '<a href="/test">Link</a>',
+                })
+            })
         })
 
         const plugin = new PuppeteerPrerenderPlugin({
@@ -158,20 +152,20 @@ describe('PuppeteerPrerenderPlugin', () => {
             discoverNewRoutes: true,
         })
 
-        renderRouteWithPuppeteerSpy = jest.spyOn(PuppeteerPrerenderPlugin.prototype, 'renderRouteWithPuppeteer').mockImplementation(() => {
-            const result: RenderResult = {
-                originalRoute: '',
-                route: '',
-                html: `
-                    <a href="/">1</a>
-                    <a href="/test">2</a>
-                    <a href="/test">2</a>
-                    <a href="/foo">3</a>
-                    <a href="/bar">4</a>
-                `,
-            }
-
-            return new Promise((resolve) => resolve(result))
+        renderRouteWithPuppeteerSpy.mockImplementation(() => {
+            return new Promise<RenderResult>((resolve) => {
+                resolve({
+                    originalRoute: '',
+                    route: '',
+                    html: `
+                        <a href="/">1</a>
+                        <a href="/test">2</a>
+                        <a href="/test">2</a>
+                        <a href="/foo">3</a>
+                        <a href="/bar">4</a>
+                    `,
+                })
+            })
         })
 
         await plugin.renderRoutes()
