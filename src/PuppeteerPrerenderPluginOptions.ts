@@ -43,7 +43,11 @@ const tbPuppeteerPrerenderPluginOptions = Type.Object({
             Type.Promise(Type.Void()),
         ])),
     ),
-    puppeteerOptions: Type.Optional(Type.Unsafe<Parameters<typeof puppeteer.launch>[0]>()),
+    puppeteerOptions: Type.Optional(
+        Type.Unsafe<Parameters<typeof puppeteer.launch>[0]>(
+            Type.Object({}),
+        ),
+    ),
 }, {
     additionalProperties: false,
 })

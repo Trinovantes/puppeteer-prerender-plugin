@@ -104,4 +104,20 @@ describe('PuppeteerPrerenderPluginOptions', () => {
 
         expect(() => validateOptions(options)).toThrow()
     })
+
+    test('puppeteer options', () => {
+        const options: PuppeteerPrerenderPluginOptions = {
+            routes: [],
+            entryDir: '',
+            puppeteerOptions: {
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                ],
+            },
+        }
+
+        expect(validateOptions(options)).toBe(true)
+    })
 })
