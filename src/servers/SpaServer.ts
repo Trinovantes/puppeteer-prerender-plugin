@@ -89,7 +89,7 @@ export class SpaServer implements PrerenderServer {
         })
     }
 
-    async isServerReady(): Promise<void> {
+    isServerReady(): Promise<void> {
         return this._isReady
     }
 
