@@ -2,13 +2,16 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { PuppeteerPrerenderPlugin } from '@/PuppeteerPrerenderPlugin'
 import { RenderResult } from '@/PuppeteerPrerenderPluginOptions'
 import { PrerenderServer } from '@/servers/PrerenderServer'
-import { describe, test, expect, vi, SpyInstance, beforeEach } from 'vitest'
+import { describe, test, expect, vi, beforeEach, MockInstance } from 'vitest'
 
-let initServerSpy: SpyInstance
-let renderRouteWithPuppeteerSpy: SpyInstance
+let initServerSpy: MockInstance
+let renderRouteWithPuppeteerSpy: MockInstance
 
-vi.mock('node:fs/promises', () => {
+vi.mock('node:fs/promises', async(importOriginal) => {
+    const actual = await importOriginal() satisfies typeof import('node:fs/promises')
+
     return {
+        ...actual,
         mkdir: vi.fn(),
         writeFile: vi.fn(),
     }

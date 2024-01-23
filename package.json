@@ -28,10 +28,10 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@sinclair/typebox": "^0.31.17",
+        "@sinclair/typebox": "^0.32.12",
         "express": "^4.17.1",
         "express-http-proxy": "^2.0.0",
-        "jsdom": "^22.1.0",
+        "jsdom": "^24.0.0",
         "puppeteer": "^21.3.5"
     },
     "peerDependencies": {
@@ -56,6 +56,6 @@
         "eslint-plugin-vue": "^9.9.0",
         "ts-node": "^10.7.0",
         "typescript": "^5.0.2",
-        "vitest": "^0.34.5"
+        "vitest": "^1.2.1"
     }
 }
