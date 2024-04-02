@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import http from 'http'
+import http from 'node:http'
 import express from 'express'
 import proxy from 'express-http-proxy'
 import { PrerenderServer } from './PrerenderServer'
