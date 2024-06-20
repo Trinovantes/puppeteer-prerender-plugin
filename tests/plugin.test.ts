@@ -22,7 +22,7 @@ beforeEach(() => {
         return new Promise<PrerenderServer>((resolve) => {
             resolve({
                 destroy: () => {},
-                isServerReady: () => new Promise<void>((resolve) => { resolve() }),
+                isServerReady: () => new Promise<void>((resolve) => resolve()),
                 baseUrl: '',
                 publicPath: '',
                 publicDir: '',

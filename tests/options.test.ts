@@ -30,7 +30,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
 
     test('non-string routes (promises) should throw', () => {
         const options = {
-            routes: [new Promise<string>((resolve) => { resolve('/') })],
+            routes: [new Promise<string>((resolve) => resolve('/'))],
             entryDir: '',
         }
 
@@ -110,7 +110,7 @@ describe('PuppeteerPrerenderPluginOptions', () => {
             routes: [],
             entryDir: '',
             puppeteerOptions: {
-                headless: 'new',
+                headless: true,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',

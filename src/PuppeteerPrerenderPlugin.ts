@@ -112,7 +112,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
                 publicPath: this._options.publicPath,
             })
         } else if (entryFile.endsWith('.js')) {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             server = (require(entryFilePath) as { default: PrerenderServer }).default
         } else {
             throw new Error('Unrecognized entryFile type')
@@ -127,7 +127,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     async initPuppeteer(): Promise<Browser> {
         this.logger.info('Initializing Puppeteer', this._options.puppeteerOptions)
         return await launch({
-            headless: 'new',
+            headless: true,
             ...this._options.puppeteerOptions,
         })
     }
