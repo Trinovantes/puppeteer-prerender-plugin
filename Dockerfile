@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 FROM node:22
-LABEL org.opencontainers.image.source https://github.com/Trinovantes/puppeteer-prerender-plugin
+LABEL org.opencontainers.image.source=https://github.com/Trinovantes/puppeteer-prerender-plugin
 # -----------------------------------------------------------------------------
 
 RUN apt-get update \
