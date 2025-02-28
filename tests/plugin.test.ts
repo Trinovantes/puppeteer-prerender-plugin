@@ -3,9 +3,17 @@ import { PuppeteerPrerenderPlugin } from '@/PuppeteerPrerenderPlugin'
 import { RenderResult } from '@/PuppeteerPrerenderPluginOptions'
 import { PrerenderServer } from '@/servers/PrerenderServer'
 import { describe, test, expect, vi, beforeEach, MockInstance } from 'vitest'
+import { LaunchOptions } from 'puppeteer'
 
 let initServerSpy: MockInstance
 let renderRouteWithPuppeteerSpy: MockInstance
+
+const puppeteerOptions: LaunchOptions = {
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+    ],
+}
 
 vi.mock('node:fs/promises', async(importOriginal) => {
     const actual = await importOriginal() satisfies typeof import('node:fs/promises')
@@ -45,6 +53,7 @@ describe('PuppeteerPrerenderPlugin', () => {
     test('single route', async() => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
+            puppeteerOptions,
             routes: ['/'],
             entryDir: '/dist',
         })
@@ -72,6 +81,7 @@ describe('PuppeteerPrerenderPlugin', () => {
 
             const plugin = new PuppeteerPrerenderPlugin({
                 enabled: true,
+                puppeteerOptions,
                 routes,
                 entryDir: '/dist',
             })
@@ -94,6 +104,7 @@ describe('PuppeteerPrerenderPlugin', () => {
     test('discoverNewRoutes=true renderFirstRouteAlone=false', async() => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
+            puppeteerOptions,
             routes: ['/'],
             entryDir: '/dist',
             discoverNewRoutes: true,
@@ -132,6 +143,7 @@ describe('PuppeteerPrerenderPlugin', () => {
 
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
+            puppeteerOptions,
             routes: ['/'],
             entryDir: '/dist',
             discoverNewRoutes: true,
@@ -150,6 +162,7 @@ describe('PuppeteerPrerenderPlugin', () => {
     test('discoverNewRoutes=true multiple routes', async() => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
+            puppeteerOptions,
             routes: ['/'],
             entryDir: '/dist',
             discoverNewRoutes: true,
