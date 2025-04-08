@@ -20,6 +20,7 @@ export default tseslint.config(
     {
         ignores: [
             '**/raw/**/*',
+            'libs',
         ],
     },
 
@@ -36,18 +37,22 @@ export default tseslint.config(
     // MARK: Style
     // ------------------------------------------------------------------------
 
-    // @ts-ignore
-    stylistic.configs['recommended-flat'],
+    stylistic.configs['recommended'],
     {
         rules: {
             '@stylistic/brace-style': ['error', '1tbs'],
             '@stylistic/quotes': ['error', 'single', {
                 avoidEscape: true,
-                allowTemplateLiterals: false,
+                allowTemplateLiterals: 'avoidEscape',
             }],
             '@stylistic/generator-star-spacing': ['error', 'before'],
             '@stylistic/arrow-parens': ['error', 'always'],
-            '@stylistic/space-before-function-paren': ['error', 'never'],
+            '@stylistic/space-before-function-paren': ['error', {
+                anonymous: 'never',
+                named: 'never',
+                asyncArrow: 'never',
+                catch: 'always',
+            }],
             '@stylistic/indent': ['error', 4, {
                 SwitchCase: 1,
             }],
@@ -74,6 +79,8 @@ export default tseslint.config(
                 overrides: {
                     '?': 'before',
                     ':': 'before',
+                    '&': 'before',
+                    '|': 'before',
                 },
             }],
         },
@@ -217,7 +224,6 @@ export default tseslint.config(
     // MARK: Vue
     // ------------------------------------------------------------------------
 
-    // @ts-expect-error Vue plugin is not properly typed
     ...pluginVue.configs['flat/strongly-recommended'],
 
     {
@@ -227,7 +233,7 @@ export default tseslint.config(
                 singleline: 999,
                 multiline: 1,
             }],
-            'vue/component-tags-order': ['error', {
+            'vue/block-order': ['error', {
                 order: ['script', 'template', 'style'],
             }],
             'vue/singleline-html-element-content-newline': ['error', {
