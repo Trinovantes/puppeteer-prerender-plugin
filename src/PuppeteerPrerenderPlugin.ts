@@ -111,7 +111,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
                 publicDir: this._options.entryDir,
                 publicPath: this._options.publicPath,
             })
-        } else if (entryFile.endsWith('.js')) {
+        } else if (entryFile.endsWith('.js') || entryFile.endsWith('.cjs')) {
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             server = (require(entryFilePath) as { default: PrerenderServer }).default
         } else {
