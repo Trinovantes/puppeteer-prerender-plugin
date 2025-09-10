@@ -40,7 +40,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
     apply(compiler: Compiler): void {
         this._logger = compiler.getInfrastructureLogger(PLUGIN_NAME)
 
-        compiler.hooks.done.tapPromise(PLUGIN_NAME, async(stats) => {
+        compiler.hooks.done.tapPromise(PLUGIN_NAME, async (stats) => {
             if (stats.compilation.needAdditionalPass) {
                 this._logger?.info('Skipping prerender because compilation needs an additional pass')
                 return
@@ -146,7 +146,7 @@ export class PuppeteerPrerenderPlugin implements WebpackPluginInstance {
             const totalRoutes = this._queuedRoutes.length
             const maxConcurrent = this._options.maxConcurrent ?? totalRoutes
 
-            await batchRequests(totalRoutes, maxConcurrent, async() => {
+            await batchRequests(totalRoutes, maxConcurrent, async () => {
                 await this.renderNextRoute(browser, server)
             })
         }

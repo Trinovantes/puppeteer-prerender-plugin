@@ -1,5 +1,5 @@
-import { validateOptions, PuppeteerPrerenderPluginOptions } from '@/PuppeteerPrerenderPluginOptions'
 import { describe, test, expect } from 'vitest'
+import { PuppeteerPrerenderPluginOptions, validateOptions } from '../src/PuppeteerPrerenderPluginOptions.ts'
 
 describe('PuppeteerPrerenderPluginOptions', () => {
     test('smoke', () => {

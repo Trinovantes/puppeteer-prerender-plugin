@@ -1,9 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises'
-import { PuppeteerPrerenderPlugin } from '@/PuppeteerPrerenderPlugin'
-import { RenderResult } from '@/PuppeteerPrerenderPluginOptions'
-import { PrerenderServer } from '@/servers/PrerenderServer'
 import { describe, test, expect, vi, beforeEach, MockInstance } from 'vitest'
 import { LaunchOptions } from 'puppeteer'
+import { PuppeteerPrerenderPlugin } from '../src/PuppeteerPrerenderPlugin.ts'
+import { PrerenderServer, RenderResult } from '../src/index.ts'
 
 let initServerSpy: MockInstance
 let renderRouteWithPuppeteerSpy: MockInstance
@@ -15,7 +14,7 @@ const puppeteerOptions: LaunchOptions = {
     ],
 }
 
-vi.mock('node:fs/promises', async(importOriginal) => {
+vi.mock('node:fs/promises', async (importOriginal) => {
     const actual = await importOriginal() satisfies typeof import('node:fs/promises')
 
     return {
@@ -50,7 +49,7 @@ beforeEach(() => {
 })
 
 describe('PuppeteerPrerenderPlugin', () => {
-    test('single route', async() => {
+    test('single route', async () => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
             puppeteerOptions,
@@ -70,7 +69,7 @@ describe('PuppeteerPrerenderPlugin', () => {
     })
 
     for (let i = 0; i < 3; i++) {
-        test(`home page route at idx:${i} always rendered last`, async() => {
+        test(`home page route at idx:${i} always rendered last`, async () => {
             const routes = [
                 '/pricing',
                 '/faq',
@@ -101,7 +100,7 @@ describe('PuppeteerPrerenderPlugin', () => {
         })
     }
 
-    test('discoverNewRoutes=true renderFirstRouteAlone=false', async() => {
+    test('discoverNewRoutes=true renderFirstRouteAlone=false', async () => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
             puppeteerOptions,
@@ -130,7 +129,7 @@ describe('PuppeteerPrerenderPlugin', () => {
         expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(2, expect.anything(), '/test')
     })
 
-    test('discoverNewRoutes=true renderFirstRouteAlone=true', async() => {
+    test('discoverNewRoutes=true renderFirstRouteAlone=true', async () => {
         renderRouteWithPuppeteerSpy.mockImplementation(() => {
             return new Promise<RenderResult>((resolve) => {
                 resolve({
@@ -159,7 +158,7 @@ describe('PuppeteerPrerenderPlugin', () => {
         expect(renderRouteWithPuppeteerSpy).toHaveBeenNthCalledWith(2, expect.anything(), '/test')
     })
 
-    test('discoverNewRoutes=true multiple routes', async() => {
+    test('discoverNewRoutes=true multiple routes', async () => {
         const plugin = new PuppeteerPrerenderPlugin({
             enabled: true,
             puppeteerOptions,
