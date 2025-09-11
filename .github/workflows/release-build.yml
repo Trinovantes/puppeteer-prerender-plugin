@@ -44,9 +44,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install puppeteer
-        run: pnpm puppeteer browsers install chrome
-
       - name: Run linter
         run: pnpm lint
 
