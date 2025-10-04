@@ -3,3 +3,8 @@ ignoredBuiltDependencies:
 
 onlyBuiltDependencies:
   - puppeteer
+
+overrides:
+  '@types/node': '^24'
+  '@types/express': '^4'
+  'express': '^4'
