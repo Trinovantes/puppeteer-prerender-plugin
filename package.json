@@ -22,11 +22,11 @@
     "private": false,
     "scripts": {
         "prepare": "puppeteer browsers install chrome",
-        "dev": "  NODE_ENV=development tsc --watch",
-        "build": "NODE_ENV=production  tsc -p tsconfig.prod.json",
-        "prepublishOnly": "rm -rf ./dist && pnpm build",
+        "prepublishOnly": "pnpm clean && pnpm build",
+        "clean": "rm -rf ./dist",
         "lint": "tsc && eslint",
-        "test": "vitest"
+        "test": "vitest",
+        "build": "vite build"
     },
     "dependencies": {
         "@sinclair/typebox": "^0.34.48",
@@ -55,6 +55,8 @@
         "ts-node": "^10.9.2",
         "typescript": "^6.0.2",
         "typescript-eslint": "^8.57.2",
+        "vite": "^8.0.2",
+        "vite-plugin-dts": "^4.5.4",
         "vitest": "^4.1.1",
         "vue-eslint-parser": "^10.4.0",
         "webpack": "^5.105.4"
