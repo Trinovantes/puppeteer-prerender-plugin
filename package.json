@@ -26,7 +26,7 @@
         "clean": "rm -rf ./dist",
         "lint": "tsc && eslint",
         "test": "vitest",
-        "build": "vite build"
+        "build": "tsc -p tsconfig.prod.json"
     },
     "dependencies": {
         "@sinclair/typebox": "^0.34.48",
@@ -55,8 +55,6 @@
         "ts-node": "^10.9.2",
         "typescript": "^6.0.2",
         "typescript-eslint": "^8.57.2",
-        "vite": "^8.0.2",
-        "vite-plugin-dts": "^4.5.4",
         "vitest": "^4.1.1",
         "vue-eslint-parser": "^10.4.0",
         "webpack": "^5.105.4"
